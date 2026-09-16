@@ -17,6 +17,7 @@ namespace UnityMediaRecorder.Example
         [SerializeField, Range(1, 60)] private int _frameRate = 60;
         [SerializeField] private int _msaa = 4;
         private int _renderWidth = 2560, _renderHeight = 1440;
+        private int _encodingPreset = 4;
         [SerializeField, Min(0.1f)] private float CaptureDurationSeconds = 10f;
         private Camera _camera;
         private Camera _overlayCamera;
@@ -33,9 +34,26 @@ namespace UnityMediaRecorder.Example
         private RenderTexture _previousMainTarget;
         private RenderTexture _previousOverlayTarget;
         private RenderTexture _previousFixedTarget;
+        private RecordingSessionStats _sessionStats;
+        private string _statsPath;
+        private readonly List<string> _videoFiles = new List<string>();
+        private bool _measurementEnded;
+        private float _finalizationStartTime;
         public bool IsCapturing { get; private set; }
         public string StatusText { get; private set; } = "";
         public bool IsScreenRecording => IsCapturing && _recordScreen;
+
+        // Selects the NVENC preset for future recordings.
+        public void SetEncodingPreset(int preset)
+        {
+            if (!IsCapturing) _encodingPreset = Mathf.Clamp(preset, 1, 7);
+        }
+
+        // Changes automatic recording duration before a session starts.
+        public void SetDuration(float seconds)
+        {
+            if (!IsCapturing) CaptureDurationSeconds = seconds;
+        }
 
         // Selects the sample count for recording targets before a session starts.
         public void SetAntiAliasing(int samples)
@@ -82,6 +100,7 @@ namespace UnityMediaRecorder.Example
         {
             var recorder = gameObject.AddComponent<UnityMediaRecorder>();
             recorder.CaptureStarted += HandleCaptureStarted;
+            recorder.FinalizationStarted += HandleFinalizationStarted;
             recorder.RecordingCompleted += HandleRecordingCompleted;
             recorder.RecordingFailed += HandleRecordingFailed;
             return recorder;
@@ -92,6 +111,9 @@ namespace UnityMediaRecorder.Example
         {
             if (IsCapturing) return;
             IsCapturing = true;
+            _sessionStats = null;
+            _videoFiles.Clear();
+            _measurementEnded = false;
             StatusText = "Preparing recording…";
             _captureStarted = false;
             _startedRecorderCount = 0;
@@ -116,6 +138,7 @@ namespace UnityMediaRecorder.Example
         {
             if (!IsCapturing) return;
             StatusText = "Finalizing MP4 files — packaging video and audio…";
+            HandleFinalizationStarted();
             StopAllCoroutines();
             if (_recordMain) _recorder.StopRecording();
             if (_recordFixed) _staticRecorder.StopRecording();
@@ -136,6 +159,7 @@ namespace UnityMediaRecorder.Example
         {
             if (recorder == null) return;
             recorder.CaptureStarted -= HandleCaptureStarted;
+            recorder.FinalizationStarted -= HandleFinalizationStarted;
             recorder.RecordingCompleted -= HandleRecordingCompleted;
             recorder.RecordingFailed -= HandleRecordingFailed;
         }
@@ -154,9 +178,7 @@ namespace UnityMediaRecorder.Example
         private IEnumerator RecordOrbit()
         {
             yield return null;
-            string directory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "UnitySample");
+            string directory = Path.Combine(Path.GetDirectoryName(Application.dataPath), "output");
             Directory.CreateDirectory(directory);
             int width = ReadPositiveEnvironmentInteger("CAPTURE_WIDTH", _width) & ~1;
             int height = ReadPositiveEnvironmentInteger("CAPTURE_HEIGHT", _height) & ~1;
@@ -165,7 +187,20 @@ namespace UnityMediaRecorder.Example
             _diagnostics.ConfigureCapture(width, height, antiAliasingSamples,
                 _benchmarkMode.StartsWith("dual-nvenc", StringComparison.OrdinalIgnoreCase) ? $"{frameRate} FPS" : "1 PNG/s");
             string profileName = Environment.GetEnvironmentVariable("CAPTURE_PROFILE") ?? $"{width}x{height}_{frameRate}fps";
-            string baseName = $"CubeOrbit_{profileName}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}";
+            string baseName = $"UnitySample_{profileName}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}";
+            _statsPath = Path.Combine(directory, baseName + "_" + Guid.NewGuid().ToString("N").Substring(0, 8) + ".stats.json");
+            _sessionStats = new RecordingSessionStats
+            {
+                status = "preparing", startedUtc = DateTime.UtcNow.ToString("O"),
+                gpu = SystemInfo.graphicsDeviceName, unityVersion = Application.unityVersion,
+                renderWidth = _renderWidth, renderHeight = _renderHeight,
+                outputWidth = width, outputHeight = height, maximumVideoFps = frameRate,
+                msaaSamples = antiAliasingSamples, vSyncCount = QualitySettings.vSyncCount,
+                encodingPreset = _encodingPreset,
+                camera1 = _recordMain, camera2 = _recordFixed, screen = _recordScreen,
+                requestedDurationSeconds = CaptureDurationSeconds
+            };
+            WriteSessionStats("preparing");
             _preparedTarget = new RenderTexture(
                 _renderWidth,
                 _renderHeight,
@@ -306,10 +341,6 @@ namespace UnityMediaRecorder.Example
             else
             {
                 ReleasePreparedTarget();
-                if (!Application.isEditor)
-                {
-                    Application.Quit();
-                }
             }
         }
 
@@ -322,6 +353,7 @@ namespace UnityMediaRecorder.Example
             int frameRate,
             int antiAliasingSamples)
         {
+            _videoFiles.Add(Path.Combine(directory, $"{baseName}.mp4"));
             return new RecordingSettings
             {
                 FfmpegPath = Environment.GetEnvironmentVariable("FFMPEG_PATH") ?? _ffmpegPath,
@@ -335,6 +367,7 @@ namespace UnityMediaRecorder.Example
                 MaximumFrameRate = frameRate,
                 AntiAliasingSamples = antiAliasingSamples,
                 EncodingQuality = VideoEncodingQuality.Balanced,
+                NativeEncodingPreset = _encodingPreset,
                 FlipVertically = SystemInfo.graphicsUVStartsAtTop
             };
         }
@@ -377,6 +410,7 @@ namespace UnityMediaRecorder.Example
             }
 
             BeginMeasurement();
+            WriteSessionStats("recording");
             StatusText = $"Recording — NVIDIA video encoding • {_width} × {_height} • up to {_frameRate} FPS • {_expectedRecorderCount} output(s)";
             Debug.Log("Sample capture started.");
         }
@@ -402,7 +436,7 @@ namespace UnityMediaRecorder.Example
                 $"staticFps={staticAverageFps:0.00}; staticFrames={_diagnostics.StaticRenderedFrames}");
         }
 
-        // Reports the completed files produced on the Desktop.
+        // Reports the completed files produced next to the application.
         private void HandleRecordingCompleted()
         {
             _completedRecorderCount++;
@@ -411,6 +445,9 @@ namespace UnityMediaRecorder.Example
                 return;
             }
 
+            HandleFinalizationStarted();
+            WriteSessionStats("completed");
+
             float elapsed = Math.Max(0.001f, Time.realtimeSinceStartup - _captureStartTime);
             float mainAverageFps = _diagnostics.MainRenderedFrames / elapsed;
             float staticAverageFps = _diagnostics.StaticRenderedFrames / elapsed;
@@ -418,28 +455,60 @@ namespace UnityMediaRecorder.Example
                 $"Unity render averages over {elapsed:0.000} s: " +
                 $"main camera={mainAverageFps:0.00} FPS ({_diagnostics.MainRenderedFrames} frames), " +
                 $"static camera={staticAverageFps:0.00} FPS ({_diagnostics.StaticRenderedFrames} frames).");
-            Debug.Log("Sample capture completed in Desktop/UnitySample.");
-            StatusText = "Recording complete — MP4 files saved to Desktop / UnitySample";
+            Debug.Log("Sample capture completed in " + Path.Combine(Path.GetDirectoryName(Application.dataPath), "output"));
+            StatusText = "Recording complete — MP4 files saved to output";
             _diagnostics.EndMeasurement();
             ReleasePreparedTarget();
-            if (!Application.isEditor)
-            {
-                Application.Quit();
-            }
         }
 
         // Reports a recording failure through the Unity console.
         private void HandleRecordingFailed(Exception exception)
         {
             Debug.LogException(exception);
+            HandleFinalizationStarted();
+            WriteSessionStats("failed", exception.Message);
             StatusText = "Recording failed — see the Unity Console for details";
             StopAllCoroutines();
             _diagnostics.EndMeasurement();
             ReleasePreparedTarget();
-            if (!Application.isEditor)
+        }
+
+        // Freezes render counters when input capture ends, excluding MP4 finalization from render averages.
+        private void HandleFinalizationStarted()
+        {
+            if (_measurementEnded || _sessionStats == null) return;
+            _measurementEnded = true;
+            _finalizationStartTime = Time.realtimeSinceStartup;
+            _diagnostics.EndMeasurement();
+            float elapsed = _captureStarted ? Mathf.Max(0, _finalizationStartTime - _captureStartTime) : 0;
+            _sessionStats.captureDurationSeconds = elapsed;
+            _sessionStats.camera1RenderedFrames = _diagnostics.MainRenderedFrames;
+            _sessionStats.camera2RenderedFrames = _diagnostics.StaticRenderedFrames;
+            _sessionStats.camera1AverageRenderFps = elapsed > 0 ? _sessionStats.camera1RenderedFrames / elapsed : 0;
+            _sessionStats.camera2AverageRenderFps = elapsed > 0 ? _sessionStats.camera2RenderedFrames / elapsed : 0;
+            WriteSessionStats("finalizing");
+        }
+
+        // Writes a readable session report without letting a statistics I/O error interrupt recording.
+        private void WriteSessionStats(string status, string error = null)
+        {
+            if (_sessionStats == null) return;
+            _sessionStats.status = status;
+            _sessionStats.error = error;
+            _sessionStats.videoFiles = _videoFiles.ToArray();
+            _sessionStats.videoFileBytes = new long[_videoFiles.Count];
+            if (status == "completed" || status == "failed")
             {
-                Application.Quit(1);
+                _sessionStats.finishedUtc = DateTime.UtcNow.ToString("O");
+                _sessionStats.finalizationDurationSeconds = _measurementEnded ? Time.realtimeSinceStartup - _finalizationStartTime : 0;
             }
+            try
+            {
+                for (int i = 0; i < _videoFiles.Count; i++)
+                    if (File.Exists(_videoFiles[i])) _sessionStats.videoFileBytes[i] = new FileInfo(_videoFiles[i]).Length;
+                File.WriteAllText(_statsPath, JsonUtility.ToJson(_sessionStats, true));
+            }
+            catch (Exception exception) { Debug.LogWarning("Cannot write session statistics: " + exception.Message); }
         }
 
         // Releases the camera target owned by this example after recording ends.

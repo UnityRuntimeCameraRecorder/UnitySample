@@ -11,6 +11,15 @@ namespace UnityMediaRecorder.Example
     // Authors editable Canvas controls with persistent callbacks.
     public static class SampleCanvasEditor
     {
+        // Updates only the saved sample UI from a batch-mode invocation.
+        public static void UpdateSavedControls()
+        {
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/RecordingSample.unity");
+            Build(Object.FindFirstObjectByType<CameraViewSwitcher>());
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
+            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
+        }
+
         // Restores the authored default without invoking runtime rendering changes.
         [MenuItem("UnitySample/Reset anti-aliasing to MSAA 4x")]
         public static void ResetAntiAliasing()
@@ -107,7 +116,7 @@ namespace UnityMediaRecorder.Example
                 UnityEventTools.AddPersistentListener(controls.VSync.onValueChanged, controls.SetVSync);
             controls.AntiAliasing = CreateAntiAliasingDropdown(root.transform, controls);
             controls.RenderResolution = CreateDropdown(root.transform, "RenderResolution", Vector2.zero, new Vector2(16, 308),
-                new[] { "Render: Full HD", "Render: 4K" }, 1, controls.SetRenderResolution);
+                new[] { "Render: Full HD", "Render: 4K" }, 0, controls.SetRenderResolution);
             bool newFullscreen = root.transform.Find("Fullscreen") == null;
             controls.Fullscreen = Checkbox(root.transform, "Fullscreen", "Fullscreen", 256, false);
             if (newFullscreen) ((RectTransform)controls.Fullscreen.transform).anchoredPosition = new Vector2(16, 256);
@@ -117,6 +126,8 @@ namespace UnityMediaRecorder.Example
                 new[] { "Output: 30 FPS", "Output: 60 FPS" }, 1, controls.SetOutputFrameRate);
             controls.OutputResolution = CreateDropdown(root.transform, "OutputResolution", new Vector2(1, 0), new Vector2(-16, 276),
                 new[] { "Output: Full HD", "Output: 4K" }, 1, controls.SetOutputResolution);
+            controls.EncodingPreset = CreateDropdown(root.transform, "EncodingPreset", new Vector2(1, 0), new Vector2(-16, 328),
+                new[] { "Preset: P1", "Preset: P2", "Preset: P3", "Preset: P4", "Preset: P5", "Preset: P6", "Preset: P7" }, 3, controls.SetEncodingPreset);
             Text gpu = Label(root.transform, "GPU", "", Vector2.zero, new Vector2(620, 28));
             gpu.fontSize = 18;
             gpu.alignment = TextAnchor.MiddleCenter;

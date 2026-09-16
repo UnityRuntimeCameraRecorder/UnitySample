@@ -11,6 +11,7 @@
 /[Bb]uild/
 /[Bb]uilds/
 /build.log
+/output/
 
 # IDE-generated files
 /.vs/

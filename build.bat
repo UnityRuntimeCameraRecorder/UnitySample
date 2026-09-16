@@ -32,4 +32,10 @@ if not "%SAMPLE_RESULT%"=="0" (
 )
 
 echo Build completed: "%SAMPLE_OUTPUT%"
+if not exist "%SAMPLE_OUTPUT%" (
+    echo ERROR: Unity reported success but the executable is missing.
+    exit /b 1
+)
+echo Launching UnitySample...
+start "" "%SAMPLE_OUTPUT%"
 exit /b 0

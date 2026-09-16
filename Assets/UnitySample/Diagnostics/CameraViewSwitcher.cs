@@ -15,6 +15,7 @@ namespace UnityMediaRecorder.Example
         public Dropdown AntiAliasing;
         public Dropdown OutputFrameRate, OutputResolution;
         public Dropdown RenderResolution;
+        public Dropdown EncodingPreset;
         private RenderTexture _originalFixedPreview, _fixedPreview;
         private int _previousAntiAliasing;
         public Button RecordButton;
@@ -26,6 +27,12 @@ namespace UnityMediaRecorder.Example
         // Applies the authored VSync choice after scene initialization.
         public void Initialize()
         {
+#if !UNITY_EDITOR
+            // Start consistently even if Unity retained display preferences from a previous run.
+            if (Fullscreen != null) Fullscreen.SetIsOnWithoutNotify(false);
+            if (RenderResolution != null) RenderResolution.SetValueWithoutNotify(0);
+            Screen.SetResolution(1920, 1080, FullScreenMode.Windowed);
+#endif
             _previousAntiAliasing = QualitySettings.antiAliasing;
             Text gpu = transform.Find("ApplicationCanvas/GPU")?.GetComponent<Text>();
             if (gpu != null) gpu.text = "GPU: " + SystemInfo.graphicsDeviceName;
@@ -55,6 +62,7 @@ namespace UnityMediaRecorder.Example
             if (VSync != null) SetVSync(VSync.isOn);
             if (AntiAliasing != null) SetAntiAliasing(AntiAliasing.value);
             ApplyOutputSettings();
+            if (EncodingPreset != null) SetEncodingPreset(EncodingPreset.value);
             if (RenderResolution != null) SetRenderResolution(RenderResolution.value);
         }
 
@@ -63,6 +71,9 @@ namespace UnityMediaRecorder.Example
 
         // Applies the selected output dimensions for future recordings.
         public void SetOutputResolution(int option) { ApplyOutputSettings(); }
+
+        // Applies the selected P1–P7 preset to future recordings.
+        public void SetEncodingPreset(int option) { Captures?.SetEncodingPreset(option + 1); }
 
         // Passes output preferences to the capture coordinator without changing preview resolution.
         private void ApplyOutputSettings()
@@ -83,7 +94,8 @@ namespace UnityMediaRecorder.Example
             System.Type editor = System.Type.GetType("UnityMediaRecorder.Example.SampleGameViewResolution, Assembly-CSharp-Editor");
             editor?.GetMethod("Apply").Invoke(null, new object[] { width, height });
 #else
-            Screen.SetResolution(width, height, Screen.fullScreenMode);
+            Screen.SetResolution(width, height, Fullscreen != null && Fullscreen.isOn
+                ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed);
 #endif
             if (Captures != null) Captures.SetRenderResolution(width, height);
             if (_fixedPreview != null)
@@ -103,8 +115,9 @@ namespace UnityMediaRecorder.Example
             UnityEditor.EditorWindow view = UnityEditor.EditorWindow.GetWindow(type);
             view.maximized = enabled;
 #else
-            Screen.fullScreenMode = enabled ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
-            if (RenderResolution != null) SetRenderResolution(RenderResolution.value);
+            bool fullHd = RenderResolution == null || RenderResolution.value == 0;
+            Screen.SetResolution(fullHd ? 1920 : 3840, fullHd ? 1080 : 2160,
+                enabled ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed);
 #endif
         }
 
@@ -178,6 +191,7 @@ namespace UnityMediaRecorder.Example
             if (AntiAliasing != null) AntiAliasing.interactable = !busy;
             if (OutputFrameRate != null) OutputFrameRate.interactable = !busy;
             if (OutputResolution != null) OutputResolution.interactable = !busy;
+            if (EncodingPreset != null) EncodingPreset.interactable = !busy;
             if (RenderResolution != null) RenderResolution.interactable = !busy;
             if (RecordCamera1 != null) RecordCamera1.interactable = !busy;
             if (RecordCamera2 != null) RecordCamera2.interactable = !busy;

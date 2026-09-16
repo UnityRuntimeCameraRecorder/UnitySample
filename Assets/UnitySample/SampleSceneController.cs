@@ -32,6 +32,7 @@ namespace UnityMediaRecorder.Example
             CameraViewSwitcher controls = Diagnostics.GetComponent<CameraViewSwitcher>();
             controls.Captures = Captures;
             controls.Initialize();
+            gameObject.AddComponent<SampleCommandLine>();
             if (RecordOnPlay)
             {
                 Captures.BeginCapture();
