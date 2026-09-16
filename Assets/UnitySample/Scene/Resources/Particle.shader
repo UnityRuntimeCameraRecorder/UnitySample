@@ -28,7 +28,6 @@ Shader "UnitySample/Particle"
                 float4 vertex : POSITION;
                 fixed4 color : COLOR;
                 float2 uv : TEXCOORD0;
-                UNITY_FOG_COORDS(1)
             };
 
             struct VertexOutput
@@ -36,6 +35,7 @@ Shader "UnitySample/Particle"
                 float4 position : SV_POSITION;
                 fixed4 color : COLOR;
                 float2 uv : TEXCOORD0;
+                UNITY_FOG_COORDS(1)
             };
 
             VertexOutput Vertex(VertexInput input)

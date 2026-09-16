@@ -4,10 +4,10 @@ namespace UnityMediaRecorder.Example
 {
     // Applies temporally reprojected smoothing and motion-vector blur to the example camera.
     [RequireComponent(typeof(Camera))]
-    internal sealed class TemporalMotionSmoothing : MonoBehaviour
+    public sealed class TemporalMotionSmoothing : MonoBehaviour
     {
-        private const float HistoryWeight = 0.08f;
-        private const float MotionBlurStrength = 0.35f;
+        [SerializeField, Range(0f, 1f)] private float HistoryWeight = 0.08f;
+        [SerializeField, Range(0f, 1f)] private float MotionBlurStrength = 0.35f;
         private Material _material;
         private RenderTexture _history;
         private bool _historyValid;
@@ -58,8 +58,8 @@ namespace UnityMediaRecorder.Example
             EnsureHistory(source);
             if (!_historyValid)
             {
-                Graphics.Blit(source, destination);
                 Graphics.Blit(source, _history);
+                Graphics.Blit(source, destination);
                 _historyValid = true;
                 return;
             }
@@ -67,8 +67,11 @@ namespace UnityMediaRecorder.Example
             _material.SetTexture("_HistoryTex", _history);
             _material.SetFloat("_HistoryWeight", HistoryWeight);
             _material.SetFloat("_MotionBlurStrength", MotionBlurStrength);
-            Graphics.Blit(source, destination, _material);
-            Graphics.Blit(destination, _history);
+            RenderTexture resolved = RenderTexture.GetTemporary(source.descriptor);
+            Graphics.Blit(source, resolved, _material);
+            Graphics.Blit(resolved, _history);
+            Graphics.Blit(resolved, destination);
+            RenderTexture.ReleaseTemporary(resolved);
         }
 
         // Recreates the temporal history when the capture resolution or format changes.

@@ -13,8 +13,8 @@ namespace UnityMediaRecorder.Example
         private const int OverlayLayer = 30;
         private Camera _camera;
         private Camera _staticCamera;
-        private Text _fpsText;
-        private Text _staticFpsText;
+        [SerializeField] private Text _fpsText;
+        [SerializeField] private Text _staticFpsText;
         private float _fpsElapsed;
         private int _fpsFrameCount;
         private float _renderFramesPerSecond;
@@ -26,31 +26,45 @@ namespace UnityMediaRecorder.Example
         private int _renderedFramesSinceCapture;
         private int _staticRenderedFramesSinceCapture;
         private bool _captureStarted;
-        private float _captureStartTime;
-        private int _captureWidth;
-        private int _captureHeight;
-        private int _antiAliasingSamples;
-        private string _captureDescription;
+        private double _applicationFpsStart;
+        private int _applicationFrameCount;
+        private float _applicationFps;
         public int MainRenderedFrames => _renderedFramesSinceCapture;
         public int StaticRenderedFrames => _staticRenderedFramesSinceCapture;
+
+        // Measures application frames using real elapsed time, independently of camera count and time scale.
+        private void Update()
+        {
+            double now = Time.realtimeSinceStartupAsDouble;
+            if (_applicationFpsStart == 0)
+            {
+                _applicationFpsStart = now;
+                return;
+            }
+            _applicationFrameCount++;
+            double elapsed = now - _applicationFpsStart;
+            if (elapsed < 0.25) return;
+            _applicationFps = (float)(_applicationFrameCount / elapsed);
+            _applicationFrameCount = 0;
+            _applicationFpsStart = now;
+            UpdateDiagnosticText();
+        }
 
         // Creates camera-specific overlays and subscribes to actual render completion.
         public void Configure(Camera sceneCamera, Camera overlayCamera, Camera fixedCamera)
         {
             _camera = sceneCamera;
             _staticCamera = fixedCamera;
-            _fpsText = CreateDiagnosticOverlay(overlayCamera, "MainCameraDiagnostics");
-            _staticFpsText = CreateDiagnosticOverlay(fixedCamera, "StaticCameraDiagnostics");
+            if (_fpsText == null) _fpsText = CreateDiagnosticOverlay(overlayCamera, "MainCameraDiagnostics");
+            if (_staticFpsText == null) _staticFpsText = CreateDiagnosticOverlay(fixedCamera, "StaticCameraDiagnostics");
+            _fpsText.fontSize = _staticFpsText.fontSize = 28;
+            Camera.onPostRender -= HandleCameraPostRender;
             Camera.onPostRender += HandleCameraPostRender;
         }
 
         // Updates the output configuration shown by both camera overlays.
         public void ConfigureCapture(int width, int height, int samples, string description)
         {
-            _captureWidth = width;
-            _captureHeight = height;
-            _antiAliasingSamples = samples;
-            _captureDescription = description;
             UpdateDiagnosticText();
         }
 
@@ -58,7 +72,6 @@ namespace UnityMediaRecorder.Example
         public void BeginMeasurement(float startTime)
         {
             _captureStarted = true;
-            _captureStartTime = startTime;
             _renderedFramesSinceCapture = 0;
             _staticRenderedFramesSinceCapture = 0;
             UpdateDiagnosticText();
@@ -188,30 +201,10 @@ namespace UnityMediaRecorder.Example
         // Formats the current scene and recorder diagnostics into the camera overlay.
         private void UpdateDiagnosticText()
         {
-            float frameTimeMilliseconds = _renderFramesPerSecond > 0f
-                ? 1000f / _renderFramesPerSecond
-                : 0f;
-            float elapsed = _captureStarted ? Time.realtimeSinceStartup - _captureStartTime : 0f;
-            string commonDiagnostics =
-                $"Capture: {_captureWidth}x{_captureHeight} @ {_captureDescription}  |  MSAA: {_antiAliasingSamples}x\n" +
-                $"VSync: {(QualitySettings.vSyncCount > 0 ? "On" : "Off")}  |  Elapsed: {elapsed:0.0} s\n" +
-                $"GPU: {SystemInfo.graphicsDeviceName}";
-            string mainDiagnostics =
-                $"Render: {_renderFramesPerSecond:0.0} FPS  ({frameTimeMilliseconds:0.0} ms)\n" +
-                $"Rendered: {_renderedFramesSinceCapture}\n" +
-                commonDiagnostics;
-            _fpsText.text = $"View: Main Camera\n{mainDiagnostics}";
-            if (_staticFpsText != null)
-            {
-                float staticFrameTimeMilliseconds = _staticRenderFramesPerSecond > 0f
-                    ? 1000f / _staticRenderFramesPerSecond
-                    : 0f;
-                string staticDiagnostics =
-                    $"Render: {_staticRenderFramesPerSecond:0.0} FPS  ({staticFrameTimeMilliseconds:0.0} ms)\n" +
-                    $"Rendered: {_staticRenderedFramesSinceCapture}\n" +
-                    commonDiagnostics;
-                _staticFpsText.text = $"View: Static Camera\n{staticDiagnostics}";
-            }
+            if (_fpsText != null && _camera != null)
+                _fpsText.text = $"{_applicationFps:0.0} FPS  |  {_camera.pixelWidth} × {_camera.pixelHeight}";
+            if (_staticFpsText != null && _staticCamera != null)
+                _staticFpsText.text = $"{_applicationFps:0.0} FPS  |  {_staticCamera.pixelWidth} × {_staticCamera.pixelHeight}";
         }
     }
 }

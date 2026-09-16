@@ -6,7 +6,7 @@ namespace UnityMediaRecorder.Example
     [RequireComponent(typeof(Camera))]
     public sealed class OrbitCamera : MonoBehaviour
     {
-        private const float Radius = 5f;
+        [SerializeField, Min(0.1f)] private float Radius = 5f;
         private bool _started;
         private float _startTime;
 
@@ -28,10 +28,11 @@ namespace UnityMediaRecorder.Example
             _started = true;
         }
 
-        // Holds for three seconds between two two-second eased half-turns.
+        // Repeats two eased half-turns with three-second holds in a ten-second loop.
         private void LateUpdate()
         {
             float elapsed = _started ? Time.realtimeSinceStartup - _startTime : 0f;
+            elapsed = Mathf.Repeat(elapsed, 10f);
             float degrees;
             if (elapsed < 3f) degrees = 0f;
             else if (elapsed < 5f) degrees = 180f * EvaluateTransition(elapsed - 3f);

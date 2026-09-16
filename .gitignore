@@ -1,16 +1,38 @@
-/Library/
-/Temp/
-/Obj/
-/Logs/
-/UserSettings/
-/Build/
-/Builds/
-/Assets/Plugins/
+# Unity-generated caches and local editor state
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Build outputs
+/[Bb]uild/
+/[Bb]uilds/
+/build.log
+
+# IDE-generated files
 /.vs/
+/.vscode/
 /.idea/
 /*.csproj
 /*.sln
+/*.slnx
+/*.suo
 /*.user
-*.mp4
-*.mkv
-*.mkv.tmp
+/*.userprefs
+/*.pidb
+/*.booproj
+/*.opendb
+/*.VC.db
+
+# OS files and crash reports
+.DS_Store
+Thumbs.db
+Desktop.ini
+/sysinfo.txt
+/UnityPlayer.log
+/crash.dmp
+
+# Keep Assets (including plugin DLLs and .meta files), Packages and ProjectSettings tracked.
