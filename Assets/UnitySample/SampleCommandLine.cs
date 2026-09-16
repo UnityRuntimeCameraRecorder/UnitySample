@@ -266,6 +266,19 @@ namespace UnityMediaRecorder.Example
             ui.RecordScreen.isOn = sources.Contains("screen") || record == "all";
             // Allow asynchronous display changes to settle before taking the first frame.
             yield return new WaitForSecondsRealtime(1);
+            try
+            {
+                FfmpegEnvironment.GetExecutablePath();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("Recording failed — " + exception.Message);
+                if (!Application.isEditor)
+                {
+                    Application.Quit(1);
+                }
+                yield break;
+            }
             ui.ToggleRecording();
             while (scene.Captures.IsCapturing)
             {

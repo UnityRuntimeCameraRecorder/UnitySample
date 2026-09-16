@@ -6,7 +6,7 @@ An editable Unity scene demonstrating camera recording: a lit cube, wind-blown g
 
 The compiled app needs Windows x64, an NVIDIA NVENC GPU, a recent driver and a separate FFmpeg installation. Keep the EXE, `UnitySample_Data` and companion files together.
 
-Open the project in Unity **6000.0.61f1**, then `Assets/Scenes/RecordingSample.unity`. In the Inspector, supply **Ffmpeg Path** on `SampleCaptureController` and save the scene.
+Set the `FFMPEG_PATH` environment variable to the full path of your FFmpeg executable, then open the project in Unity **6000.0.61f1** and `Assets/Scenes/RecordingSample.unity`. Restart Unity Hub and the editor after changing a persistent environment variable so they inherit its value.
 
 Press Play, select the recording sources and click **Record**:
 
@@ -22,19 +22,31 @@ The app starts windowed in Full HD. Left controls set render/window resolution, 
 
 ### Install FFmpeg on Windows
 
-Download FFmpeg for Windows from the [official download page](https://ffmpeg.org/download.html) and extract the archive. Find `bin\ffmpeg.exe` in the extracted folder. Enter its full path in **Ffmpeg Path** on `SampleCaptureController`, save the scene and rebuild the player.
+Download FFmpeg for Windows from the [official download page](https://ffmpeg.org/download.html) and extract the archive. Set `FFMPEG_PATH` to the full path of `bin\ffmpeg.exe`. The sample reads this variable exclusively at runtime and reports an error if it is missing or invalid.
 
-Configure FFmpeg in the scene before building. Enable the scene in **Build Profiles > Scene List**, save and close Unity, then run:
+For the current PowerShell session (replace the example path with yours):
 
-```bat
-build.bat
+```powershell
+$env:FFMPEG_PATH = 'C:\tools\ffmpeg\bin\ffmpeg.exe'
 ```
 
-`Unity.exe` must be in your system PATH. The script produces `Builds/Windows/UnitySample.exe` and launches it on success. It includes the DLLs already in `Assets/UnitySample/Plugins`; it does not rebuild or refresh those libraries. Build diagnostics go to `build.log`.
+To save it for your Windows user, add `FFMPEG_PATH` in **Environment Variables > User variables** and restart the applications that will launch the sample. The libraries still receive the path explicitly from the sample through `RecordingSettings.FfmpegPath`.
+
+Enable the scene in **Build Profiles > Scene List**, save and close Unity, then run in Bash (Git Bash on Windows):
+
+```bash
+bash ./build.sh
+```
+
+Install Unity **6000.0.61f1** and its build support module for your platform. Put `Unity` (`Unity.exe` on Windows) in `PATH` or set `UNITY_EXECUTABLE` to its full executable path. The script only builds for the current OS. Build diagnostics go to `build.log`.
+
+Outputs: `Builds/Windows/UnitySample.exe`, `Builds/Linux/UnitySample` or `Builds/macOS/UnitySample.app`. Video recording currently requires Windows/NVIDIA; Linux/macOS builds can preview the scene and use the PNG capture API, but have not been tested locally.
+
+The script currently uses the DLLs in `Assets/UnitySample/Plugins`; it does not restore NuGet packages yet because those packages are not published. `build.bat` remains a Windows-only alternative.
 
 ## Command-line example
 
-With the FFmpeg path already saved into your build:
+With `FFMPEG_PATH` set in the launching process:
 
 ```powershell
 & .\Builds\Windows\UnitySample.exe --render 4k --resolution 4k --fps 60 --codec hevc --preset p5 --vsync on --aa 4 --record camera1,camera2 --duration 30 --quit-after-recording
@@ -56,7 +68,7 @@ Switches use the same settings as the UI:
 | `--quit-after-recording` | Finalize and exit; requires `--record` |
 | `--purge` | Permanently delete only sample-prefixed output files before recording |
 
-Without `--record`, the app only previews. Keep it visible: batch/headless player runs are not valid recording tests. `record.bat` runs a predefined recording and prints statistics; it currently uses `--purge`.
+Without `--record`, the app only previews. Keep it visible: batch/headless player runs are not valid recording tests. With `FFMPEG_PATH` set, run `bash ./record.sh` in Git Bash on Windows: it records camera 1 and screen for 10 seconds in 4K/60 max, HEVC/P5, VSync and MSAA 4x, exits after finalization and prints the session's JSON statistics. It uses `--purge`, deleting only sample-prefixed output files. Linux/macOS video recording still needs a compatible backend.
 
 ## Output and editing
 

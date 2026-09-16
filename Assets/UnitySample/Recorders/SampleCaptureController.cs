@@ -12,8 +12,7 @@ namespace UnityMediaRecorder.Example
     {
         [SerializeField]
         private string _mode = "dual-nvenc";
-        [SerializeField]
-        private string _ffmpegPath = "";
+        private string _ffmpegPath;
         [SerializeField, Min(2)]
         private int _width = 3840;
         [SerializeField, Min(2)]
@@ -145,6 +144,20 @@ namespace UnityMediaRecorder.Example
             if (IsCapturing)
             {
                 return;
+            }
+
+            if (string.IsNullOrEmpty(_benchmarkMode) || _benchmarkMode.StartsWith("dual-nvenc", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    _ffmpegPath = FfmpegEnvironment.GetExecutablePath();
+                }
+                catch (Exception exception)
+                {
+                    StatusText = "Recording failed — " + exception.Message;
+                    Debug.LogError(StatusText);
+                    return;
+                }
             }
 
             IsCapturing = true;

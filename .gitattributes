@@ -1,0 +1,3 @@
+# Keep the portable Bash entry point usable on Unix after a Windows checkout.
+/build.sh text eol=lf
+/record.sh text eol=lf
