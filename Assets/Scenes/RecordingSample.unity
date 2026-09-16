@@ -2020,7 +2020,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _mode: dual-nvenc
-  _ffmpegPath: C:\src\ffmpeg-9.0.1\bin\ffmpeg.exe
+  _ffmpegPath: ''
   _width: 3840
   _height: 2160
   _frameRate: 60

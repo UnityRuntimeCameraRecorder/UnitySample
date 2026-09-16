@@ -13,7 +13,7 @@ namespace UnityMediaRecorder.Example
         [SerializeField]
         private string _mode = "dual-nvenc";
         [SerializeField]
-        private string _ffmpegPath = @"C:\src\ffmpeg-9.0.1\bin\ffmpeg.exe";
+        private string _ffmpegPath = "";
         [SerializeField, Min(2)]
         private int _width = 3840;
         [SerializeField, Min(2)]
@@ -381,7 +381,7 @@ namespace UnityMediaRecorder.Example
             _videoFiles.Add(Path.Combine(directory, $"{baseName}.mp4"));
             return new RecordingSettings
             {
-                FfmpegPath = Environment.GetEnvironmentVariable("FFMPEG_PATH") ?? _ffmpegPath,
+                FfmpegPath = _ffmpegPath,
                 TemporaryContainerPath = Path.Combine(directory, $"{baseName}.mkv.tmp"),
                 ArchivePath = Path.Combine(directory, $"{baseName}.mkv"),
                 KeepIntermediateFile = false,
