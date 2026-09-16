@@ -13,7 +13,6 @@ namespace UnityMediaRecorder.Example
         public bool RecordOnPlay;
         private int _previousVSync;
         private int _previousFrameRate;
-
         // Connects the authored cameras and optionally starts their capture sessions.
         private void Start()
         {
@@ -25,10 +24,8 @@ namespace UnityMediaRecorder.Example
             QualitySettings.vSyncCount = 1;
             Application.targetFrameRate = -1;
             Diagnostics.Configure(OrbitView, OverlayView, FixedView);
-            Diagnostics.ConfigureCapture(OrbitView.pixelWidth, OrbitView.pixelHeight,
-                Mathf.Max(1, QualitySettings.antiAliasing), "preview");
-            Captures.Configure(OrbitView, OverlayView, FixedView,
-                OrbitView.GetComponent<OrbitCamera>(), Diagnostics);
+            Diagnostics.ConfigureCapture(OrbitView.pixelWidth, OrbitView.pixelHeight, Mathf.Max(1, QualitySettings.antiAliasing), "preview");
+            Captures.Configure(OrbitView, OverlayView, FixedView, OrbitView.GetComponent<OrbitCamera>(), Diagnostics);
             CameraViewSwitcher controls = Diagnostics.GetComponent<CameraViewSwitcher>();
             controls.Captures = Captures;
             controls.Initialize();
@@ -37,7 +34,10 @@ namespace UnityMediaRecorder.Example
             {
                 Captures.BeginCapture();
             }
-            else OrbitView.GetComponent<OrbitCamera>().BeginOrbit(Time.realtimeSinceStartup);
+            else
+            {
+                OrbitView.GetComponent<OrbitCamera>().BeginOrbit(Time.realtimeSinceStartup);
+            }
         }
 
         // Restores the previous frame pacing when leaving the scene.

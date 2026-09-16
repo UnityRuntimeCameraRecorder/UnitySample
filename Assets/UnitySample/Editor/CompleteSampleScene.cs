@@ -10,12 +10,15 @@ namespace UnityMediaRecorder.Example
     public static class CompleteSampleScene
     {
         private const string AssetRoot = "Assets/UnitySample/Scene/GeneratedAssets";
-
         // Adds only the camera preview controls while preserving all other scene settings.
         [MenuItem("UnitySample/Add camera view buttons")]
         public static void AddCameraViewButtons()
         {
-            if (EditorApplication.isPlaying) throw new InvalidOperationException("Leave Play mode before editing the scene.");
+            if (EditorApplication.isPlaying)
+            {
+                throw new InvalidOperationException("Leave Play mode before editing the scene.");
+            }
+
             CameraViewSwitcher switcher = Component<CameraViewSwitcher>(FindOrCreate("Diagnostics"));
             switcher.Camera1 = GameObject.Find("OrbitCamera").GetComponent<Camera>();
             switcher.Camera2 = GameObject.Find("FixedCamera").GetComponent<Camera>();
@@ -34,9 +37,16 @@ namespace UnityMediaRecorder.Example
         [MenuItem("UnitySample/Complete saved scene")]
         public static void Complete()
         {
-            if (EditorApplication.isPlaying) throw new InvalidOperationException("Leave Play mode before editing the scene.");
+            if (EditorApplication.isPlaying)
+            {
+                throw new InvalidOperationException("Leave Play mode before editing the scene.");
+            }
+
             if (!AssetDatabase.IsValidFolder(AssetRoot))
+            {
                 AssetDatabase.CreateFolder("Assets/UnitySample/Scene", "GeneratedAssets");
+            }
+
             Transform scenery = FindOrCreate("Scene").transform;
             Transform recorders = FindOrCreate("Recorders").transform;
             Transform diagnosticRoot = FindOrCreate("Diagnostics").transform;
@@ -58,13 +68,23 @@ namespace UnityMediaRecorder.Example
         private static void BuildWorld(Transform parent)
         {
             GameObject cube = GameObject.Find("Cube");
-            if (cube == null) { cube = GameObject.CreatePrimitive(PrimitiveType.Cube); cube.name = "Cube"; }
+            if (cube == null)
+            {
+                cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.name = "Cube";
+            }
+
             cube.transform.SetParent(parent, true);
             cube.transform.position = Vector3.up * 0.5f;
             cube.GetComponent<Renderer>().sharedMaterial = MaterialAsset("CubeBlue", "UnitySample/Lit", new Color(0.15f, 0.55f, 1f));
             cube.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.On;
             GameObject floor = GameObject.Find("Floor");
-            if (floor == null) { floor = GameObject.CreatePrimitive(PrimitiveType.Plane); floor.name = "Floor"; }
+            if (floor == null)
+            {
+                floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                floor.name = "Floor";
+            }
+
             floor.transform.SetParent(parent, true);
             floor.transform.localScale = Vector3.one * 2f;
             floor.GetComponent<Renderer>().sharedMaterial = MaterialAsset("Ground", "UnitySample/Lit", new Color(0.18f, 0.2f, 0.24f));
@@ -89,21 +109,49 @@ namespace UnityMediaRecorder.Example
         // Bakes grass geometry and saves the particle systems as editable scene components.
         private static void BuildAtmosphere(Transform parent)
         {
-            if (GameObject.Find("WindGrassPatches") == null) SampleGrass.Create();
-            if (GameObject.Find("FloatingAirParticles") == null) SampleAtmosphere.CreateFloatingParticles();
-            if (GameObject.Find("HumidityMist") == null) SampleAtmosphere.CreateHumidityMist();
-            foreach (string name in new[] { "WindGrassPatches", "FloatingAirParticles", "HumidityMist" })
+            if (GameObject.Find("WindGrassPatches") == null)
+            {
+                SampleGrass.Create();
+            }
+
+            if (GameObject.Find("FloatingAirParticles") == null)
+            {
+                SampleAtmosphere.CreateFloatingParticles();
+            }
+
+            if (GameObject.Find("HumidityMist") == null)
+            {
+                SampleAtmosphere.CreateHumidityMist();
+            }
+
+            foreach (string name in new[]
+            {
+                "WindGrassPatches",
+                "FloatingAirParticles",
+                "HumidityMist"
+            }
+
+            )
             {
                 GameObject item = GameObject.Find(name);
                 item.transform.SetParent(parent, true);
                 Renderer renderer = item.GetComponent<Renderer>();
                 if (!AssetDatabase.Contains(renderer.sharedMaterial))
+                {
                     AssetDatabase.CreateAsset(renderer.sharedMaterial, AssetRoot + "/" + name + ".mat");
+                }
+
                 MeshFilter mesh = item.GetComponent<MeshFilter>();
                 if (mesh != null && !AssetDatabase.Contains(mesh.sharedMesh))
+                {
                     AssetDatabase.CreateAsset(mesh.sharedMesh, AssetRoot + "/Grass.asset");
+                }
+
                 ParticleSystem particles = item.GetComponent<ParticleSystem>();
-                if (particles != null) particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                if (particles != null)
+                {
+                    particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                }
             }
         }
 
@@ -115,10 +163,18 @@ namespace UnityMediaRecorder.Example
             if (material == null)
             {
                 Shader shader = Shader.Find(shaderName);
-                if (shader == null) throw new InvalidOperationException("Missing shader: " + shaderName);
-                material = new Material(shader) { color = color };
+                if (shader == null)
+                {
+                    throw new InvalidOperationException("Missing shader: " + shaderName);
+                }
+
+                material = new Material(shader)
+                {
+                    color = color
+                };
                 AssetDatabase.CreateAsset(material, path);
             }
+
             return material;
         }
 
@@ -143,14 +199,27 @@ namespace UnityMediaRecorder.Example
             RenderTexture preview = AssetDatabase.LoadAssetAtPath<RenderTexture>(AssetRoot + "/FixedPreview.renderTexture");
             if (preview == null)
             {
-                preview = new RenderTexture(1920, 1080, 24) { name = "FixedPreview" };
+                preview = new RenderTexture(1920, 1080, 24)
+                {
+                    name = "FixedPreview"
+                };
                 AssetDatabase.CreateAsset(preview, AssetRoot + "/FixedPreview.renderTexture");
             }
+
             fixedView.targetTexture = preview;
             SampleDiagnostics diagnostics = Component<SampleDiagnostics>(diagnosticRoot.gameObject);
             diagnostics.Configure(main, overlay, fixedView);
-            foreach (string name in new[] { "MainCameraDiagnosticsCanvas", "StaticCameraDiagnosticsCanvas" })
+            foreach (string name in new[]
+            {
+                "MainCameraDiagnosticsCanvas",
+                "StaticCameraDiagnosticsCanvas"
+            }
+
+            )
+            {
                 GameObject.Find(name).transform.SetParent(diagnosticRoot, true);
+            }
+
             SampleCaptureController captures = Component<SampleCaptureController>(parent.gameObject);
             SampleSceneController controller = Component<SampleSceneController>(FindOrCreate("SampleController"));
             controller.OrbitView = main;
@@ -176,7 +245,8 @@ namespace UnityMediaRecorder.Example
         }
 
         // Retrieves or adds one component without creating duplicate behaviours.
-        private static T Component<T>(GameObject owner) where T : UnityEngine.Component
+        private static T Component<T>(GameObject owner)
+            where T : UnityEngine.Component
         {
             T existing = owner.GetComponent<T>();
             return existing != null ? existing : owner.AddComponent<T>();

@@ -6,10 +6,10 @@ namespace UnityMediaRecorder.Example
     [RequireComponent(typeof(Camera))]
     public sealed class OrbitCamera : MonoBehaviour
     {
-        [SerializeField, Min(0.1f)] private float Radius = 5f;
+        [SerializeField, Min(0.1f)]
+        private float Radius = 5f;
         private bool _started;
         private float _startTime;
-
         // Configures the scene camera and its initial orbit position.
         public Camera Configure(int overlayLayer)
         {
@@ -34,10 +34,23 @@ namespace UnityMediaRecorder.Example
             float elapsed = _started ? Time.realtimeSinceStartup - _startTime : 0f;
             elapsed = Mathf.Repeat(elapsed, 10f);
             float degrees;
-            if (elapsed < 3f) degrees = 0f;
-            else if (elapsed < 5f) degrees = 180f * EvaluateTransition(elapsed - 3f);
-            else if (elapsed < 8f) degrees = 180f;
-            else degrees = 180f + 180f * EvaluateTransition(elapsed - 8f);
+            if (elapsed < 3f)
+            {
+                degrees = 0f;
+            }
+            else if (elapsed < 5f)
+            {
+                degrees = 180f * EvaluateTransition(elapsed - 3f);
+            }
+            else if (elapsed < 8f)
+            {
+                degrees = 180f;
+            }
+            else
+            {
+                degrees = 180f + 180f * EvaluateTransition(elapsed - 8f);
+            }
+
             SetPosition(degrees);
         }
 
@@ -65,9 +78,15 @@ namespace UnityMediaRecorder.Example
             const float speed = 2f / 3f;
             float clamped = Mathf.Clamp(elapsed, 0f, duration);
             if (clamped < ramp)
+            {
                 return speed * ramp * IntegratedEaseInOut(clamped / ramp);
+            }
+
             if (clamped <= duration - ramp)
+            {
                 return 1f / 6f + speed * (clamped - ramp);
+            }
+
             return 1f - speed * ramp * IntegratedEaseInOut((duration - clamped) / ramp);
         }
     }

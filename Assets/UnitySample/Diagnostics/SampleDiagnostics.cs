@@ -13,8 +13,10 @@ namespace UnityMediaRecorder.Example
         private const int OverlayLayer = 30;
         private Camera _camera;
         private Camera _staticCamera;
-        [SerializeField] private Text _fpsText;
-        [SerializeField] private Text _staticFpsText;
+        [SerializeField]
+        private Text _fpsText;
+        [SerializeField]
+        private Text _staticFpsText;
         private float _fpsElapsed;
         private int _fpsFrameCount;
         private float _renderFramesPerSecond;
@@ -41,9 +43,14 @@ namespace UnityMediaRecorder.Example
                 _applicationFpsStart = now;
                 return;
             }
+
             _applicationFrameCount++;
             double elapsed = now - _applicationFpsStart;
-            if (elapsed < 0.25) return;
+            if (elapsed < 0.25)
+            {
+                return;
+            }
+
             _applicationFps = (float)(_applicationFrameCount / elapsed);
             _applicationFrameCount = 0;
             _applicationFpsStart = now;
@@ -55,8 +62,16 @@ namespace UnityMediaRecorder.Example
         {
             _camera = sceneCamera;
             _staticCamera = fixedCamera;
-            if (_fpsText == null) _fpsText = CreateDiagnosticOverlay(overlayCamera, "MainCameraDiagnostics");
-            if (_staticFpsText == null) _staticFpsText = CreateDiagnosticOverlay(fixedCamera, "StaticCameraDiagnostics");
+            if (_fpsText == null)
+            {
+                _fpsText = CreateDiagnosticOverlay(overlayCamera, "MainCameraDiagnostics");
+            }
+
+            if (_staticFpsText == null)
+            {
+                _staticFpsText = CreateDiagnosticOverlay(fixedCamera, "StaticCameraDiagnostics");
+            }
+
             _fpsText.fontSize = _staticFpsText.fontSize = 28;
             Camera.onPostRender -= HandleCameraPostRender;
             Camera.onPostRender += HandleCameraPostRender;
@@ -102,7 +117,6 @@ namespace UnityMediaRecorder.Example
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 0.5f;
-
             GameObject overlay = new GameObject(objectName);
             overlay.layer = OverlayLayer;
             overlay.transform.SetParent(canvasObject.transform, false);
@@ -159,6 +173,7 @@ namespace UnityMediaRecorder.Example
             {
                 _staticRenderedFramesSinceCapture++;
             }
+
             if (_staticFpsElapsed >= 0.25f)
             {
                 _staticRenderFramesPerSecond = _staticFpsFrameCount / _staticFpsElapsed;
@@ -188,6 +203,7 @@ namespace UnityMediaRecorder.Example
             {
                 _renderedFramesSinceCapture++;
             }
+
             if (_fpsElapsed >= 0.25f)
             {
                 _renderFramesPerSecond = _fpsFrameCount / _fpsElapsed;
@@ -195,16 +211,20 @@ namespace UnityMediaRecorder.Example
                 _fpsFrameCount = 0;
                 UpdateDiagnosticText();
             }
-
         }
 
         // Formats the current scene and recorder diagnostics into the camera overlay.
         private void UpdateDiagnosticText()
         {
             if (_fpsText != null && _camera != null)
+            {
                 _fpsText.text = $"{_applicationFps:0.0} FPS  |  {_camera.pixelWidth} × {_camera.pixelHeight}";
+            }
+
             if (_staticFpsText != null && _staticCamera != null)
+            {
                 _staticFpsText.text = $"{_applicationFps:0.0} FPS  |  {_staticCamera.pixelWidth} × {_staticCamera.pixelHeight}";
+            }
         }
     }
 }
