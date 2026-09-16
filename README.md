@@ -4,7 +4,7 @@ To move controls, leave Play mode and expand `Diagnostics > ApplicationCanvas` i
 
 **Record screen** creates a separate MP4 of the application's displayed Game view, including its interface (not the Windows desktop or editor panels). It follows preview-camera changes. The **Fullscreen** checkbox and **Quit** button are always visible. **Quit** finalizes any active videos before exiting. In the editor, these controls maximize the Game view and leave Play mode instead of closing Unity. Output dimensions stay fixed if the window changes size.
 
-The left controls select render resolution (Full HD or 4K), fullscreen, MSAA and VSync. VSync also controls the editor Game view. The right controls independently select video output resolution and a 30/60 FPS capture ceiling. Resolution and MSAA changes are locked during recording. Live application FPS, render dimensions and GPU appear only in Play mode; recording progress appears at the bottom.
+The left controls select render resolution (Full HD or 4K), fullscreen, MSAA and VSync. VSync also controls the editor Game view. The right controls select video output resolution, a 30/60 FPS capture ceiling, NVENC preset (P5 by default) and video codec (HEVC by default, or H.264). HEVC was faster in the tested dual-camera 4K/P5 workload; performance depends on the GPU and content. These settings are locked during recording. NVENC uses asynchronous completion by default; no environment variables are needed. Live application FPS, render dimensions and GPU appear only in Play mode; recording progress appears at the bottom.
 
 ## Build
 
@@ -27,7 +27,8 @@ Startup switches use the same settings as the Canvas. They configure a new proce
 | `--camera` | `1`, `2` (displayed view) |
 | `--resolution` | `fullhd`, `4k` (video output) |
 | `--fps` | `30`, `60` (capture ceiling) |
-| `--preset` | `p1` to `p7` (NVENC preset; default P4; dropdown on the right) |
+| `--preset` | `p2` to `p6` (NVENC preset; default P5; dropdown on the right) |
+| `--codec` | `h264`, `hevc` (default HEVC; dropdown on the right) |
 | `--record` | Comma-separated `camera1`, `camera2`, `screen`; also `both` or `all` |
 | `--duration` | Positive seconds, at least `0.1`; decimal separator `.` |
 | `--purge` | No value; permanently delete sample files from `output` before starting |

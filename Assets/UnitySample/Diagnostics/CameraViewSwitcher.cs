@@ -16,6 +16,7 @@ namespace UnityMediaRecorder.Example
         public Dropdown OutputFrameRate, OutputResolution;
         public Dropdown RenderResolution;
         public Dropdown EncodingPreset;
+        public Dropdown VideoCodec;
         private RenderTexture _originalFixedPreview, _fixedPreview;
         private int _previousAntiAliasing;
         public Button RecordButton;
@@ -83,6 +84,10 @@ namespace UnityMediaRecorder.Example
             }
 
             ApplyOutputSettings();
+            if (VideoCodec != null)
+            {
+                SetVideoCodec(VideoCodec.value);
+            }
             if (EncodingPreset != null)
             {
                 SetEncodingPreset(EncodingPreset.value);
@@ -106,10 +111,16 @@ namespace UnityMediaRecorder.Example
             ApplyOutputSettings();
         }
 
-        // Applies the selected P1–P7 preset to future recordings.
+        // Maps the five displayed P2–P6 options to their actual NVIDIA preset numbers.
         public void SetEncodingPreset(int option)
         {
-            Captures?.SetEncodingPreset(option + 1);
+            Captures?.SetEncodingPreset(option + 2);
+        }
+
+        // Applies the selected codec to future camera and screen recordings.
+        public void SetVideoCodec(int option)
+        {
+            Captures?.SetVideoCodec(option == 0 ? FFmpegMediaWriter.VideoStreamFormat.H264 : FFmpegMediaWriter.VideoStreamFormat.Hevc);
         }
 
         // Passes output preferences to the capture coordinator without changing preview resolution.
@@ -310,6 +321,10 @@ namespace UnityMediaRecorder.Example
             if (EncodingPreset != null)
             {
                 EncodingPreset.interactable = !busy;
+            }
+            if (VideoCodec != null)
+            {
+                VideoCodec.interactable = !busy;
             }
 
             if (RenderResolution != null)

@@ -9,6 +9,7 @@ namespace UnityMediaRecorder.Example
         public string status, startedUtc, finishedUtc, gpu, unityVersion, error;
         public int renderWidth, renderHeight, outputWidth, outputHeight, maximumVideoFps, msaaSamples, vSyncCount;
         public int encodingPreset;
+        public string videoCodec;
         public bool camera1, camera2, screen;
         public float requestedDurationSeconds, captureDurationSeconds, finalizationDurationSeconds;
         public int camera1RenderedFrames, camera2RenderedFrames;

@@ -11,6 +11,16 @@ namespace UnityMediaRecorder.Example
     // Authors editable Canvas controls with persistent callbacks.
     public static class SampleCanvasEditor
     {
+        // Adds only the codec control while preserving other authored Canvas elements.
+        public static void AddSavedVideoCodecControl()
+        {
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/RecordingSample.unity");
+            var controls = Object.FindFirstObjectByType<CameraViewSwitcher>();
+            var canvas = controls.transform.Find("ApplicationCanvas");
+            controls.VideoCodec = CreateDropdown(canvas, "VideoCodec", new Vector2(1, 0), new Vector2(-16, 380), new[] { "Video codec: H.264", "Video codec: HEVC" }, 1, controls.SetVideoCodec);
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
+            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
+        }
         // Updates only the saved sample UI from a batch-mode invocation.
         public static void UpdateSavedControls()
         {
@@ -187,7 +197,8 @@ namespace UnityMediaRecorder.Example
 
             controls.OutputFrameRate = CreateDropdown(root.transform, "OutputFrameRate", new Vector2(1, 0), new Vector2(-16, 224), new[] { "Output: 30 FPS", "Output: 60 FPS" }, 1, controls.SetOutputFrameRate);
             controls.OutputResolution = CreateDropdown(root.transform, "OutputResolution", new Vector2(1, 0), new Vector2(-16, 276), new[] { "Output: Full HD", "Output: 4K" }, 1, controls.SetOutputResolution);
-            controls.EncodingPreset = CreateDropdown(root.transform, "EncodingPreset", new Vector2(1, 0), new Vector2(-16, 328), new[] { "Preset: P1", "Preset: P2", "Preset: P3", "Preset: P4", "Preset: P5", "Preset: P6", "Preset: P7" }, 3, controls.SetEncodingPreset);
+            controls.EncodingPreset = CreateDropdown(root.transform, "EncodingPreset", new Vector2(1, 0), new Vector2(-16, 328), new[] { "P2 - Very fast", "P3 - Fast", "P4 - Balanced", "P5 - High quality", "P6 - Higher quality" }, 3, controls.SetEncodingPreset);
+            controls.VideoCodec = CreateDropdown(root.transform, "VideoCodec", new Vector2(1, 0), new Vector2(-16, 380), new[] { "Video codec: H.264", "Video codec: HEVC" }, 1, controls.SetVideoCodec);
             Text gpu = Label(root.transform, "GPU", "", Vector2.zero, new Vector2(620, 28));
             gpu.fontSize = 18;
             gpu.alignment = TextAnchor.MiddleCenter;

@@ -23,7 +23,8 @@ namespace UnityMediaRecorder.Example
         [SerializeField]
         private int _msaa = 4;
         private int _renderWidth = 2560, _renderHeight = 1440;
-        private int _encodingPreset = 4;
+        private int _encodingPreset = 5;
+        private FFmpegMediaWriter.VideoStreamFormat _videoCodec = FFmpegMediaWriter.VideoStreamFormat.Hevc;
         [SerializeField, Min(0.1f)]
         private float CaptureDurationSeconds = 10f;
         private Camera _camera;
@@ -49,6 +50,15 @@ namespace UnityMediaRecorder.Example
         public bool IsCapturing { get; private set; }
         public string StatusText { get; private set; } = "";
         public bool IsScreenRecording => IsCapturing && _recordScreen;
+
+        // Selects the output codec before a new recording session begins.
+        public void SetVideoCodec(FFmpegMediaWriter.VideoStreamFormat codec)
+        {
+            if (!IsCapturing)
+            {
+                _videoCodec = codec;
+            }
+        }
 
         // Selects the NVENC preset for future recordings.
         public void SetEncodingPreset(int preset)
@@ -251,6 +261,7 @@ namespace UnityMediaRecorder.Example
                 msaaSamples = antiAliasingSamples,
                 vSyncCount = QualitySettings.vSyncCount,
                 encodingPreset = _encodingPreset,
+                videoCodec = _videoCodec == FFmpegMediaWriter.VideoStreamFormat.Hevc ? "hevc" : "h264",
                 camera1 = _recordMain,
                 camera2 = _recordFixed,
                 screen = _recordScreen,
@@ -382,6 +393,7 @@ namespace UnityMediaRecorder.Example
                 AntiAliasingSamples = antiAliasingSamples,
                 EncodingQuality = VideoEncodingQuality.Balanced,
                 NativeEncodingPreset = _encodingPreset,
+                VideoStreamFormat = _videoCodec,
                 FlipVertically = SystemInfo.graphicsUVStartsAtTop
             };
         }

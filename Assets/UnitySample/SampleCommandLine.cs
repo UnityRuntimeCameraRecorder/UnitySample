@@ -43,16 +43,18 @@ namespace UnityMediaRecorder.Example
                     }
                 },
                 {
+                    "--codec",
+                    new[] { "h264", "hevc" }
+                },
+                {
                     "--preset",
                     new[]
                     {
-                        "p1",
                         "p2",
                         "p3",
                         "p4",
                         "p5",
-                        "p6",
-                        "p7"
+                        "p6"
                     }
                 },
                 {
@@ -230,6 +232,10 @@ namespace UnityMediaRecorder.Example
             if (options.TryGetValue("--preset", out string preset))
             {
                 ui.EncodingPreset.value = Array.IndexOf(valid["--preset"], preset);
+            }
+            if (options.TryGetValue("--codec", out string codec))
+            {
+                ui.VideoCodec.value = codec == "h264" ? 0 : 1;
             }
 
             if (options.TryGetValue("--camera", out string camera))
