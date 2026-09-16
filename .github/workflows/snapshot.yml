@@ -1,0 +1,146 @@
+name: Snapshot build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: snapshot-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Fork PRs cannot use the Unity account secrets required for activation.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    name: Player / ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      # Avoid concurrent activations of the same Unity account.
+      max-parallel: 1
+      matrix:
+        include:
+          - os: windows-2022
+            platform: Windows
+            player: UnitySample.exe
+          - os: ubuntu-22.04
+            platform: Linux
+            player: UnitySample
+          - os: macos-14
+            platform: macOS
+            player: UnitySample.app
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out sample
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Check Unity activation configuration
+        env:
+          UNITY_USERNAME: ${{ secrets.UNITY_USERNAME }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if [[ -z "$UNITY_USERNAME" || -z "$UNITY_PASSWORD" ]]; then
+              printf '%s\n' 'Configure UNITY_USERNAME and UNITY_PASSWORD in repository Actions secrets.' >&2
+              exit 1
+          fi
+
+      - name: Install Linux build prerequisites
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgtk-3-0 libnss3 libasound2 libglu1-mesa
+
+      - name: Set up Unity
+        id: unity
+        uses: buildalon/unity-setup@30fcbcb56c10ea5d64298e970d952b8d29bc268b # v2
+        with:
+          version-file: ProjectSettings/ProjectVersion.txt
+          cache-installation: true
+
+      # The action returns its license in the post step, including on build failure.
+      - name: Activate Unity Personal license
+        uses: buildalon/activate-unity-license@e0d245d0787b7b9931b56ccbde3b508f6b70f1af # v2
+        with:
+          license: personal
+          username: ${{ secrets.UNITY_USERNAME }}
+          password: ${{ secrets.UNITY_PASSWORD }}
+
+      - name: Build player without launching
+        env:
+          UNITY_EXECUTABLE: ${{ steps.unity.outputs.unity-editor-path }}
+        run: |
+          if [[ "$RUNNER_OS" == Linux ]]; then
+              xvfb-run -a bash ./build.sh
+          else
+              bash ./build.sh
+          fi
+
+      - name: Package snapshot
+        shell: pwsh
+        env:
+          SNAPSHOT_PLATFORM: ${{ matrix.platform }}
+          SNAPSHOT_PLAYER: ${{ matrix.player }}
+        run: |
+          $output = Join-Path 'Builds' $env:SNAPSHOT_PLATFORM
+          $player = Join-Path $output $env:SNAPSHOT_PLAYER
+          if (-not (Test-Path -LiteralPath $player)) {
+              throw "The built player is missing: $player"
+          }
+          Copy-Item -LiteralPath 'LICENSE', 'README.md' -Destination $output
+          $hashes = [ordered]@{}
+          $outputPath = (Resolve-Path -LiteralPath $output).Path
+          foreach ($file in Get-ChildItem -LiteralPath $outputPath -File -Recurse) {
+              $relative = [IO.Path]::GetRelativePath($outputPath, $file.FullName).Replace('\', '/')
+              $hashes[$relative] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+          }
+          $version = (Select-String -LiteralPath 'ProjectSettings/ProjectVersion.txt' -Pattern '^m_EditorVersion: ').Line.Split(':', 2)[1].Trim()
+          [ordered]@{
+              kind = 'snapshot'
+              commit = (git rev-parse HEAD)
+              unityVersion = $version
+              platform = $env:SNAPSHOT_PLATFORM
+              run = $env:GITHUB_RUN_ID
+              attempt = $env:GITHUB_RUN_ATTEMPT
+              builtUtc = [DateTime]::UtcNow.ToString('O')
+              fileSha256 = $hashes
+          } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $output 'build-info.json') -Encoding utf8
+          $snapshot = 'Builds/Snapshots'
+          New-Item -ItemType Directory -Path $snapshot -Force | Out-Null
+          if ($env:SNAPSHOT_PLATFORM -eq 'Windows') {
+              Compress-Archive -Path "$output/*" -DestinationPath "$snapshot/UnitySample-Windows.zip" -Force
+          } else {
+              # Tar preserves executable permissions and macOS bundle symbolic links.
+              tar -czf "$snapshot/UnitySample-$($env:SNAPSHOT_PLATFORM).tar.gz" -C $output .
+              if ($LASTEXITCODE -ne 0) {
+                  throw 'Snapshot archive creation failed.'
+              }
+          }
+
+      - name: Upload snapshot
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: UnitySample-snapshot-${{ matrix.platform }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: Builds/Snapshots/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: UnitySample-build-log-${{ matrix.platform }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build.log
+          if-no-files-found: ignore
+          retention-days: 30

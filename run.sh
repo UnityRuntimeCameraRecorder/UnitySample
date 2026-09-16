@@ -22,7 +22,7 @@ latest_stats() {
 if [[ $# -gt 0 ]]; then
     if [[ $# -eq 1 && ( "$1" == --help || "$1" == -h ) ]]; then
         printf '%s\n' \
-            'Usage: bash record.sh' \
+            'Usage: bash run.sh' \
             'Requires a Windows/NVIDIA build and FFMPEG_PATH pointing to FFmpeg.' \
             'Records camera1 + screen for 10 seconds: 4K input/output, 60 FPS max, HEVC, P5, VSync, MSAA 4x.' \
             'Purges only sample-prefixed output files before recording.'
