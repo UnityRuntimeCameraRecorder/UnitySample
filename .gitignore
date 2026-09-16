@@ -1,0 +1,16 @@
+/Library/
+/Temp/
+/Obj/
+/Logs/
+/UserSettings/
+/Build/
+/Builds/
+/Assets/Plugins/
+/.vs/
+/.idea/
+/*.csproj
+/*.sln
+/*.user
+*.mp4
+*.mkv
+*.mkv.tmp
