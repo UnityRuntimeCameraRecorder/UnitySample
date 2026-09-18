@@ -11,6 +11,7 @@ namespace UnityMediaRecorder.Example
         public SampleDiagnostics Diagnostics;
         public SampleCaptureController Captures;
         public bool RecordOnPlay;
+        public AudioClip BackgroundMusic;
         private int _previousVSync;
         private int _previousFrameRate;
         // Connects the authored cameras and optionally starts their capture sessions.
@@ -23,10 +24,11 @@ namespace UnityMediaRecorder.Example
             _previousFrameRate = Application.targetFrameRate;
             QualitySettings.vSyncCount = 1;
             Application.targetFrameRate = -1;
-            Diagnostics.Configure(OrbitView, OverlayView, FixedView);
+            PlayBackgroundMusic();
+            CameraViewSwitcher controls = Diagnostics.GetComponent<CameraViewSwitcher>();
+            Diagnostics.Configure(OrbitView, OverlayView, FixedView, controls.ScreenCamera);
             Diagnostics.ConfigureCapture(OrbitView.pixelWidth, OrbitView.pixelHeight, Mathf.Max(1, QualitySettings.antiAliasing), "preview");
             Captures.Configure(OrbitView, OverlayView, FixedView, OrbitView.GetComponent<OrbitCamera>(), Diagnostics);
-            CameraViewSwitcher controls = Diagnostics.GetComponent<CameraViewSwitcher>();
             controls.Captures = Captures;
             controls.Initialize();
             gameObject.AddComponent<SampleCommandLine>();
@@ -38,6 +40,21 @@ namespace UnityMediaRecorder.Example
             {
                 OrbitView.GetComponent<OrbitCamera>().BeginOrbit(Time.realtimeSinceStartup);
             }
+        }
+
+        // Plays the scene's background track once through the normal audio mix.
+        private void PlayBackgroundMusic()
+        {
+            if (BackgroundMusic == null)
+            {
+                return;
+            }
+
+            AudioSource music = gameObject.AddComponent<AudioSource>();
+            music.playOnAwake = false;
+            music.spatialBlend = 0f;
+            music.clip = BackgroundMusic;
+            music.Play();
         }
 
         // Restores the previous frame pacing when leaving the scene.

@@ -47,15 +47,8 @@ namespace UnityMediaRecorder.Example
                     new[] { "h264", "hevc" }
                 },
                 {
-                    "--preset",
-                    new[]
-                    {
-                        "p2",
-                        "p3",
-                        "p4",
-                        "p5",
-                        "p6"
-                    }
+                    "--quality",
+                    new[] { "low", "medium", "high" }
                 },
                 {
                     "--fullscreen",
@@ -229,9 +222,11 @@ namespace UnityMediaRecorder.Example
                 ui.OutputFrameRate.value = fps == "30" ? 0 : 1;
             }
 
-            if (options.TryGetValue("--preset", out string preset))
+            if (options.TryGetValue("--quality", out string quality))
             {
-                ui.EncodingPreset.value = Array.IndexOf(valid["--preset"], preset);
+                int selectedQuality = Array.IndexOf(valid["--quality"], quality);
+                ui.RecordingQuality.SetValueWithoutNotify(selectedQuality);
+                ui.SetRecordingQuality(selectedQuality);
             }
             if (options.TryGetValue("--codec", out string codec))
             {

@@ -22,10 +22,15 @@ namespace UnityMediaRecorder.Example
         [SerializeField]
         private int _msaa = 4;
         private int _renderWidth = 2560, _renderHeight = 1440;
-        private int _encodingPreset = 5;
-        private FFmpegMediaWriter.VideoStreamFormat _videoCodec = FFmpegMediaWriter.VideoStreamFormat.Hevc;
+        private RecordingQualityPreset _qualityPreset = RecordingQualityPreset.High;
+        public void SetQualityPreset(RecordingQualityPreset preset)
+        {
+            if (!IsCapturing) _qualityPreset = preset;
+        }
+        private FFmpegMediaWriter.VideoStreamFormat _videoCodec = FFmpegMediaWriter.VideoStreamFormat.H264;
         [SerializeField, Min(0.1f)]
         private float CaptureDurationSeconds = 10f;
+        private bool _stopAfterDuration;
         private Camera _camera;
         private Camera _overlayCamera;
         private Camera _staticCamera;
@@ -35,9 +40,27 @@ namespace UnityMediaRecorder.Example
         private SampleDiagnostics _diagnostics;
         private bool _recordMain = true;
         private bool _recordFixed = true;
-        private bool _recordScreen;
+        private bool _recordScreen = true;
         private UnityMediaRecorder _screenRecorder;
-        private int _expectedRecorderCount = 2;
+        private int _expectedRecorderCount = 1;
+        private RenderTexture _switchingTarget, _groundTarget, _previousGroundTarget;
+        private Camera _groundCamera, _outputCamera;
+        private readonly List<RenderTexture> _switchingSources = new List<RenderTexture>();
+        private const float CameraSwitchSeconds = 4f;
+
+        private UnityEngine.Rendering.CommandBuffer _compositionCommands;
+        private int _compositionIndex = -1;
+
+        // Composes the selected source on the recorder camera's actual GPU target.
+        private void LateUpdate()
+        {
+            if (_outputCamera == null || _switchingSources.Count == 0) return;
+            int index = ActiveSourceIndex;
+            if (_compositionIndex == index) return;
+            _compositionIndex = index;
+            _compositionCommands.Clear();
+            _compositionCommands.Blit(_switchingSources[index], UnityEngine.Rendering.BuiltinRenderTextureType.CameraTarget);
+        }
         private RenderTexture _previousMainTarget;
         private RenderTexture _previousOverlayTarget;
         private RenderTexture _previousFixedTarget;
@@ -48,7 +71,36 @@ namespace UnityMediaRecorder.Example
         private float _finalizationStartTime;
         public bool IsCapturing { get; private set; }
         public string StatusText { get; private set; } = "";
-        public bool IsScreenRecording => IsCapturing && _recordScreen;
+        private int ActiveSourceIndex => _switchingSources.Count == 0 ? 0 : _captureStarted ? (int)((Time.realtimeSinceStartup - _captureStartTime) / CameraSwitchSeconds) % _switchingSources.Count : 0;
+        public bool IsScreenRecording => IsCapturing && !_measurementEnded && _recordScreen && _switchingSources.Count > 0 && ActiveSourceIndex == _switchingSources.Count - 1;
+
+        // Samples the final application image, including overlay UI, before the encoder samples its target.
+        private IEnumerator CaptureScreenSource()
+        {
+            var endOfFrame = new WaitForEndOfFrame();
+            while (IsCapturing && !_measurementEnded)
+            {
+                yield return endOfFrame;
+                if (!IsScreenRecording || _outputCamera == null) continue;
+                if (_groundTarget == null || _groundTarget.width != Screen.width || _groundTarget.height != Screen.height)
+                {
+                    if (_groundTarget != null) { _groundTarget.Release(); Destroy(_groundTarget); }
+                    _groundTarget = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+                    _groundTarget.Create();
+                    _switchingSources[_switchingSources.Count - 1] = _groundTarget;
+                    _compositionIndex = -1;
+                }
+                RenderTexture previous = RenderTexture.active;
+                RenderTexture.active = null;
+                ScreenCapture.CaptureScreenshotIntoRenderTexture(_groundTarget);
+                // Screen capture is upright already; compensate for the recorder's camera-target flip.
+                if (SystemInfo.graphicsUVStartsAtTop)
+                    Graphics.Blit(_groundTarget, _outputCamera.targetTexture, new Vector2(1f, -1f), new Vector2(0f, 1f));
+                else
+                    Graphics.Blit(_groundTarget, _outputCamera.targetTexture);
+                RenderTexture.active = previous;
+            }
+        }
 
         // Selects the output codec before a new recording session begins.
         public void SetVideoCodec(FFmpegMediaWriter.VideoStreamFormat codec)
@@ -59,21 +111,13 @@ namespace UnityMediaRecorder.Example
             }
         }
 
-        // Selects the NVENC preset for future recordings.
-        public void SetEncodingPreset(int preset)
-        {
-            if (!IsCapturing)
-            {
-                _encodingPreset = Mathf.Clamp(preset, 1, 7);
-            }
-        }
-
         // Changes automatic recording duration before a session starts.
         public void SetDuration(float seconds)
         {
             if (!IsCapturing)
             {
                 CaptureDurationSeconds = seconds;
+                _stopAfterDuration = true;
             }
         }
 
@@ -182,7 +226,7 @@ namespace UnityMediaRecorder.Example
             _recordMain = camera1;
             _recordFixed = camera2;
             _recordScreen = screen;
-            _expectedRecorderCount = (camera1 ? 1 : 0) + (camera2 ? 1 : 0) + (screen ? 1 : 0);
+            _expectedRecorderCount = 1;
             _benchmarkMode = "dual-nvenc";
             BeginCapture();
         }
@@ -195,23 +239,10 @@ namespace UnityMediaRecorder.Example
                 return;
             }
 
-            StatusText = "Finalizing MP4 files — packaging video and audio…";
+            StatusText = "Finalizing MP4 file — packaging video and audio…";
             HandleFinalizationStarted();
             StopAllCoroutines();
-            if (_recordMain)
-            {
-                _recorder.StopRecording();
-            }
-
-            if (_recordFixed)
-            {
-                _staticRecorder.StopRecording();
-            }
-
-            if (_recordScreen)
-            {
-                _screenRecorder.StopRecording();
-            }
+            _recorder.StopRecording();
         }
 
         // Disconnects recorder callbacks and releases capture-owned GPU targets.
@@ -252,8 +283,8 @@ namespace UnityMediaRecorder.Example
             yield return null;
             string directory = Path.Combine(Path.GetDirectoryName(Application.dataPath), "output");
             Directory.CreateDirectory(directory);
-            int width = ReadPositiveEnvironmentInteger("CAPTURE_WIDTH", _width) & ~1;
-            int height = ReadPositiveEnvironmentInteger("CAPTURE_HEIGHT", _height) & ~1;
+            int width = ReadPositiveEnvironmentInteger("CAPTURE_WIDTH", _width);
+            int height = ReadPositiveEnvironmentInteger("CAPTURE_HEIGHT", _height);
             int frameRate = ReadPositiveEnvironmentInteger("CAPTURE_FRAME_RATE", _frameRate);
             int antiAliasingSamples = ReadPositiveEnvironmentInteger("CAPTURE_MSAA", _msaa);
             _diagnostics.ConfigureCapture(width, height, antiAliasingSamples, _benchmarkMode.StartsWith("dual-nvenc", StringComparison.OrdinalIgnoreCase) ? $"{frameRate} FPS" : "1 PNG/s");
@@ -273,12 +304,21 @@ namespace UnityMediaRecorder.Example
                 maximumVideoFps = frameRate,
                 msaaSamples = antiAliasingSamples,
                 vSyncCount = QualitySettings.vSyncCount,
-                encodingPreset = _encodingPreset,
+                encodingPreset = RecordingQualityProfile.FromPreset(_qualityPreset, width, height, frameRate).NativeEncodingPreset,
+                qualityPreset = _qualityPreset.ToString(),
+                rateControl = "cqp",
+                quantizationParameter = RecordingQualityProfile.FromPreset(_qualityPreset, width, height, frameRate).QuantizationParameter,
+                videoBitRate = RecordingQualityProfile.FromPreset(_qualityPreset, width, height, frameRate).VideoBitRate,
+                maximumVideoBitRate = RecordingQualityProfile.FromPreset(_qualityPreset, width, height, frameRate).MaximumVideoBitRate,
+                audioCodec = "aac",
+                audioSampleRate = 48000,
+                audioChannels = 2,
+                audioBitRate = RecordingQualityProfile.FromPreset(_qualityPreset, width, height, frameRate).AudioBitRate,
                 videoCodec = _videoCodec == FFmpegMediaWriter.VideoStreamFormat.Hevc ? "hevc" : "h264",
                 camera1 = _recordMain,
                 camera2 = _recordFixed,
                 screen = _recordScreen,
-                requestedDurationSeconds = CaptureDurationSeconds
+                requestedDurationSeconds = _stopAfterDuration ? CaptureDurationSeconds : 0
             };
             WriteSessionStats("preparing");
             _preparedTarget = new RenderTexture(_renderWidth, _renderHeight, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
@@ -314,6 +354,11 @@ namespace UnityMediaRecorder.Example
                 yield return null;
             }
 
+            if (!_stopAfterDuration)
+            {
+                while (IsCapturing && !_measurementEnded) yield return null;
+                yield break;
+            }
             yield return new WaitForSecondsRealtime(CaptureDurationSeconds);
             _recorder.StopPngSequence();
             _staticRecorder.StopPngSequence();
@@ -334,23 +379,37 @@ namespace UnityMediaRecorder.Example
 
             if (useNvenc)
             {
-                if (_recordMain)
-                {
-                    _recorder.StartRecording(_overlayCamera, _camera.GetComponent<AudioListener>(), CreateRecordingSettings(directory, $"{baseName}_{_benchmarkMode}_MainCamera", width, height, frameRate, antiAliasingSamples), _preparedTarget);
-                }
-
-                if (_recordFixed)
-                {
-                    _staticRecorder.StartRecording(_staticCamera, _camera.GetComponent<AudioListener>(), CreateRecordingSettings(directory, $"{baseName}_{_benchmarkMode}_StaticCamera", width, height, frameRate, antiAliasingSamples), _staticPreparedTarget);
-                }
-
+                _switchingTarget = new RenderTexture(_renderWidth, _renderHeight, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+                _switchingTarget.Create();
+                _groundCamera = _diagnostics.GetComponent<CameraViewSwitcher>().ScreenCamera;
+                _switchingSources.Clear();
+                if (_recordMain) _switchingSources.Add(_preparedTarget);
+                if (_recordFixed) _switchingSources.Add(_staticPreparedTarget);
                 if (_recordScreen)
                 {
-                    RecordingSettings screenSettings = CreateRecordingSettings(directory, $"{baseName}_Screen", width, height, frameRate, 1);
-                    screenSettings.CaptureScreen = true;
-                    screenSettings.FlipVertically = false;
-                    _screenRecorder.StartRecording(_camera, _camera.GetComponent<AudioListener>(), screenSettings);
+                    if (_groundCamera == null)
+                    {
+                        HandleRecordingFailed(new InvalidOperationException("The ground camera is not configured."));
+                        yield break;
+                    }
+                    _previousGroundTarget = _groundCamera.targetTexture;
+                    _groundTarget = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+                    _groundTarget.Create();
+                    _groundCamera.targetTexture = null;
+                    _switchingSources.Add(_groundTarget);
                 }
+                var outputObject = new GameObject("RecordingOutputCamera");
+                _outputCamera = outputObject.AddComponent<Camera>();
+                _outputCamera.depth = 1000;
+                _outputCamera.cullingMask = 0;
+                _outputCamera.clearFlags = CameraClearFlags.Nothing;
+                _outputCamera.targetTexture = _switchingTarget;
+                _compositionCommands = new UnityEngine.Rendering.CommandBuffer { name = "Compose recording camera" };
+                _compositionIndex = -1;
+                _outputCamera.AddCommandBuffer(UnityEngine.Rendering.CameraEvent.AfterEverything, _compositionCommands);
+                LateUpdate();
+                if (_recordScreen) StartCoroutine(CaptureScreenSource());
+                _recorder.StartRecording(_outputCamera, _camera.GetComponent<AudioListener>(), CreateRecordingSettings(directory, $"{baseName}_CameraCycle", width, height, frameRate, 1), _switchingTarget);
 
                 while (!_captureStarted)
                 {
@@ -362,25 +421,17 @@ namespace UnityMediaRecorder.Example
                 BeginMeasurement();
             }
 
+            if (!_stopAfterDuration)
+            {
+                while (IsCapturing && !_measurementEnded) yield return null;
+                yield break;
+            }
             yield return new WaitForSecondsRealtime(CaptureDurationSeconds);
             ReportBenchmarkMeasurement();
             if (useNvenc)
             {
-                StatusText = "Finalizing MP4 files — packaging video and audio…";
-                if (_recordMain)
-                {
-                    _recorder.StopRecording();
-                }
-
-                if (_recordFixed)
-                {
-                    _staticRecorder.StopRecording();
-                }
-
-                if (_recordScreen)
-                {
-                    _screenRecorder.StopRecording();
-                }
+                StatusText = "Finalizing MP4 file — packaging video and audio…";
+                StopCapture();
             }
             else
             {
@@ -397,15 +448,14 @@ namespace UnityMediaRecorder.Example
                 FfmpegPath = _ffmpegPath,
                 TemporaryContainerPath = Path.Combine(directory, $"{baseName}.mkv.tmp"),
                 ArchivePath = Path.Combine(directory, $"{baseName}.mkv"),
-                KeepIntermediateFile = false,
+                KeepIntermediateFile = Environment.GetEnvironmentVariable("CAPTURE_KEEP_INTERMEDIATE") == "1",
                 GeneratePreviewImage = false,
                 OutputPath = Path.Combine(directory, $"{baseName}.mp4"),
                 Width = width,
                 Height = height,
                 MaximumFrameRate = frameRate,
                 AntiAliasingSamples = antiAliasingSamples,
-                EncodingQuality = VideoEncodingQuality.Balanced,
-                NativeEncodingPreset = _encodingPreset,
+                QualityPreset = _qualityPreset,
                 VideoStreamFormat = _videoCodec,
                 FlipVertically = SystemInfo.graphicsUVStartsAtTop
             };
@@ -477,13 +527,14 @@ namespace UnityMediaRecorder.Example
             }
 
             HandleFinalizationStarted();
+            _sessionStats.videoDiagnosticsJson = _recorder?.LastVideoDiagnosticsJson;
             WriteSessionStats("completed");
             float elapsed = Math.Max(0.001f, Time.realtimeSinceStartup - _captureStartTime);
             float mainAverageFps = _diagnostics.MainRenderedFrames / elapsed;
             float staticAverageFps = _diagnostics.StaticRenderedFrames / elapsed;
             Debug.Log($"Unity render averages over {elapsed:0.000} s: " + $"main camera={mainAverageFps:0.00} FPS ({_diagnostics.MainRenderedFrames} frames), " + $"static camera={staticAverageFps:0.00} FPS ({_diagnostics.StaticRenderedFrames} frames).");
             Debug.Log("Sample capture completed in " + Path.Combine(Path.GetDirectoryName(Application.dataPath), "output"));
-            StatusText = "Recording complete — MP4 files saved to output";
+            StatusText = "Recording complete — MP4 file saved to output";
             _diagnostics.EndMeasurement();
             ReleasePreparedTarget();
         }
@@ -515,8 +566,10 @@ namespace UnityMediaRecorder.Example
             _sessionStats.captureDurationSeconds = elapsed;
             _sessionStats.camera1RenderedFrames = _diagnostics.MainRenderedFrames;
             _sessionStats.camera2RenderedFrames = _diagnostics.StaticRenderedFrames;
+            _sessionStats.screenRenderedFrames = _diagnostics.ScreenRenderedFrames;
             _sessionStats.camera1AverageRenderFps = elapsed > 0 ? _sessionStats.camera1RenderedFrames / elapsed : 0;
             _sessionStats.camera2AverageRenderFps = elapsed > 0 ? _sessionStats.camera2RenderedFrames / elapsed : 0;
+            _sessionStats.screenAverageRenderFps = elapsed > 0 ? _sessionStats.screenRenderedFrames / elapsed : 0;
             WriteSessionStats("finalizing");
         }
 
@@ -559,6 +612,20 @@ namespace UnityMediaRecorder.Example
         // Releases the camera target owned by this example after recording ends.
         private void ReleasePreparedTarget()
         {
+            if (_compositionCommands != null)
+            {
+                if (_outputCamera != null) _outputCamera.RemoveCommandBuffer(UnityEngine.Rendering.CameraEvent.AfterEverything, _compositionCommands);
+                _compositionCommands.Release(); _compositionCommands = null;
+            }
+            if (_outputCamera != null) _outputCamera.targetTexture = null;
+            if (_outputCamera != null) { Destroy(_outputCamera.gameObject); _outputCamera = null; }
+            if (_groundTarget != null)
+            {
+                if (_groundCamera != null && _groundCamera.targetTexture == null) _groundCamera.targetTexture = _previousGroundTarget;
+                _groundTarget.Release(); Destroy(_groundTarget); _groundTarget = null;
+            }
+            if (_switchingTarget != null) { _switchingTarget.Release(); Destroy(_switchingTarget); _switchingTarget = null; }
+            _switchingSources.Clear();
             if (_preparedTarget == null)
             {
                 return;

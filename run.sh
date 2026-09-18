@@ -57,8 +57,8 @@ previous_report="$(latest_stats)"
 printf '%s\n' 'Recording camera 1 and screen for 10 seconds: 4K input/output, 60 FPS max, HEVC, P5, VSync, MSAA 4x.'
 printf '%s\n' 'Sample-prefixed output files will be purged before recording.'
 result=0
-"$player_path" --purge --render 4k --resolution 4k --fps 60 --codec hevc \
-    --vsync on --aa 4 --preset p5 --record camera1,screen --duration 10 \
+"$player_path" --purge --render 4k --resolution 4k --fps 60 --codec h264 \
+    --vsync on --aa 4 --quality high --record camera1,screen --duration 10 \
     --quit-after-recording || result=$?
 
 report="$(latest_stats)"

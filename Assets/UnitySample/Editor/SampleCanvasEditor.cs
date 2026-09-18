@@ -11,13 +11,27 @@ namespace UnityMediaRecorder.Example
     // Authors editable Canvas controls with persistent callbacks.
     public static class SampleCanvasEditor
     {
+        public static void AddSavedRecordingQualityControl()
+        {
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/RecordingSample.unity");
+            var controls = Object.FindFirstObjectByType<CameraViewSwitcher>();
+            var canvas = controls.transform.Find("ApplicationCanvas");
+            if (controls.RecordingQuality == null)
+                controls.RecordingQuality = CreateDropdown(canvas, "RecordingQuality", new Vector2(1, 0), new Vector2(-16, 328), new[] { "Quality: Low", "Quality: Medium", "Quality: High" }, 2, controls.SetRecordingQuality);
+            var manualPreset = canvas.Find("EncodingPreset");
+            if (manualPreset != null) Object.DestroyImmediate(manualPreset.gameObject);
+            controls.RecordingQuality.GetComponent<RectTransform>().anchoredPosition = new Vector2(-16, 328);
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
+            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
+        }
+
         // Adds only the codec control while preserving other authored Canvas elements.
         public static void AddSavedVideoCodecControl()
         {
             var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/RecordingSample.unity");
             var controls = Object.FindFirstObjectByType<CameraViewSwitcher>();
             var canvas = controls.transform.Find("ApplicationCanvas");
-            controls.VideoCodec = CreateDropdown(canvas, "VideoCodec", new Vector2(1, 0), new Vector2(-16, 380), new[] { "Video codec: H.264", "Video codec: HEVC" }, 1, controls.SetVideoCodec);
+            controls.VideoCodec = CreateDropdown(canvas, "VideoCodec", new Vector2(1, 0), new Vector2(-16, 380), new[] { "Video codec: H.264", "Video codec: HEVC" }, 0, controls.SetVideoCodec);
             UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
             UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
         }
@@ -197,8 +211,8 @@ namespace UnityMediaRecorder.Example
 
             controls.OutputFrameRate = CreateDropdown(root.transform, "OutputFrameRate", new Vector2(1, 0), new Vector2(-16, 224), new[] { "Output: 30 FPS", "Output: 60 FPS" }, 1, controls.SetOutputFrameRate);
             controls.OutputResolution = CreateDropdown(root.transform, "OutputResolution", new Vector2(1, 0), new Vector2(-16, 276), new[] { "Output: Full HD", "Output: 4K" }, 1, controls.SetOutputResolution);
-            controls.EncodingPreset = CreateDropdown(root.transform, "EncodingPreset", new Vector2(1, 0), new Vector2(-16, 328), new[] { "P2 - Very fast", "P3 - Fast", "P4 - Balanced", "P5 - High quality", "P6 - Higher quality" }, 3, controls.SetEncodingPreset);
-            controls.VideoCodec = CreateDropdown(root.transform, "VideoCodec", new Vector2(1, 0), new Vector2(-16, 380), new[] { "Video codec: H.264", "Video codec: HEVC" }, 1, controls.SetVideoCodec);
+            controls.RecordingQuality = CreateDropdown(root.transform, "RecordingQuality", new Vector2(1, 0), new Vector2(-16, 328), new[] { "Quality: Low", "Quality: Medium", "Quality: High" }, 2, controls.SetRecordingQuality);
+            controls.VideoCodec = CreateDropdown(root.transform, "VideoCodec", new Vector2(1, 0), new Vector2(-16, 380), new[] { "Video codec: H.264", "Video codec: HEVC" }, 0, controls.SetVideoCodec);
             Text gpu = Label(root.transform, "GPU", "", Vector2.zero, new Vector2(620, 28));
             gpu.fontSize = 18;
             gpu.alignment = TextAnchor.MiddleCenter;
@@ -213,7 +227,7 @@ namespace UnityMediaRecorder.Example
             status.rectTransform.anchoredPosition = new Vector2(0, 16);
             controls.RecordCamera1 = Checkbox(root.transform, "RecordCamera1", "Record camera 1", 104, true);
             controls.RecordCamera2 = Checkbox(root.transform, "RecordCamera2", "Record camera 2", 60, true);
-            controls.RecordScreen = Checkbox(root.transform, "RecordScreen", "Record screen", 16, false);
+            controls.RecordScreen = Checkbox(root.transform, "RecordScreen", "Record screen", 16, true);
             controls.RecordButton = Button(root.transform, "RecordButton", "Record", new Vector2(680, 16), false, controls.ToggleRecording);
             controls.RecordButtonLabel = controls.RecordButton.GetComponentInChildren<Text>();
             Transform oldFullscreen = root.transform.Find("FullscreenButton");

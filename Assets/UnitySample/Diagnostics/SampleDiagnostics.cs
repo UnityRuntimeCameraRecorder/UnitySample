@@ -13,10 +13,12 @@ namespace UnityMediaRecorder.Example
         private const int OverlayLayer = 30;
         private Camera _camera;
         private Camera _staticCamera;
+        private Camera _screenCamera;
         [SerializeField]
         private Text _fpsText;
         [SerializeField]
         private Text _staticFpsText;
+        public Text ScreenFpsText;
         private float _fpsElapsed;
         private int _fpsFrameCount;
         private float _renderFramesPerSecond;
@@ -27,12 +29,14 @@ namespace UnityMediaRecorder.Example
         private long _staticLastFpsTimestamp;
         private int _renderedFramesSinceCapture;
         private int _staticRenderedFramesSinceCapture;
+        private int _screenRenderedFramesSinceCapture;
         private bool _captureStarted;
         private double _applicationFpsStart;
         private int _applicationFrameCount;
         private float _applicationFps;
         public int MainRenderedFrames => _renderedFramesSinceCapture;
         public int StaticRenderedFrames => _staticRenderedFramesSinceCapture;
+        public int ScreenRenderedFrames => _screenRenderedFramesSinceCapture;
 
         // Measures application frames using real elapsed time, independently of camera count and time scale.
         private void Update()
@@ -58,10 +62,11 @@ namespace UnityMediaRecorder.Example
         }
 
         // Creates camera-specific overlays and subscribes to actual render completion.
-        public void Configure(Camera sceneCamera, Camera overlayCamera, Camera fixedCamera)
+        public void Configure(Camera sceneCamera, Camera overlayCamera, Camera fixedCamera, Camera screenCamera = null)
         {
             _camera = sceneCamera;
             _staticCamera = fixedCamera;
+            _screenCamera = screenCamera;
             if (_fpsText == null)
             {
                 _fpsText = CreateDiagnosticOverlay(overlayCamera, "MainCameraDiagnostics");
@@ -89,6 +94,7 @@ namespace UnityMediaRecorder.Example
             _captureStarted = true;
             _renderedFramesSinceCapture = 0;
             _staticRenderedFramesSinceCapture = 0;
+            _screenRenderedFramesSinceCapture = 0;
             UpdateDiagnosticText();
         }
 
@@ -140,6 +146,13 @@ namespace UnityMediaRecorder.Example
         // Counts completed renders from the example camera inside Unity's normal render loop.
         private void HandleCameraPostRender(Camera renderedCamera)
         {
+            if (_captureStarted)
+            {
+                if (renderedCamera == _camera) _renderedFramesSinceCapture++;
+                if (renderedCamera == _staticCamera) _staticRenderedFramesSinceCapture++;
+                if (_screenCamera != null && renderedCamera == _screenCamera) _screenRenderedFramesSinceCapture++;
+            }
+
             long timestamp = System.Diagnostics.Stopwatch.GetTimestamp();
             if (renderedCamera == _camera)
             {
@@ -169,10 +182,6 @@ namespace UnityMediaRecorder.Example
             _staticFpsElapsed += (float)(timestamp - _staticLastFpsTimestamp) / System.Diagnostics.Stopwatch.Frequency;
             _staticLastFpsTimestamp = timestamp;
             _staticFpsFrameCount++;
-            if (_captureStarted)
-            {
-                _staticRenderedFramesSinceCapture++;
-            }
 
             if (_staticFpsElapsed >= 0.25f)
             {
@@ -199,10 +208,6 @@ namespace UnityMediaRecorder.Example
             _fpsElapsed += (float)(timestamp - _lastFpsTimestamp) / System.Diagnostics.Stopwatch.Frequency;
             _lastFpsTimestamp = timestamp;
             _fpsFrameCount++;
-            if (_captureStarted)
-            {
-                _renderedFramesSinceCapture++;
-            }
 
             if (_fpsElapsed >= 0.25f)
             {
@@ -216,6 +221,10 @@ namespace UnityMediaRecorder.Example
         // Formats the current scene and recorder diagnostics into the camera overlay.
         private void UpdateDiagnosticText()
         {
+            if (ScreenFpsText != null)
+            {
+                ScreenFpsText.text = $"{_applicationFps:0.0} FPS  |  {Screen.width} × {Screen.height}";
+            }
             if (_fpsText != null && _camera != null)
             {
                 _fpsText.text = $"{_applicationFps:0.0} FPS  |  {_camera.pixelWidth} × {_camera.pixelHeight}";

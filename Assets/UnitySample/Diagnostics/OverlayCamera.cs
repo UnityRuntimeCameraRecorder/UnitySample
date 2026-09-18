@@ -6,6 +6,16 @@ namespace UnityMediaRecorder.Example
     [RequireComponent(typeof(Camera))]
     public sealed class OverlayCamera : MonoBehaviour
     {
+        // Keeps the diagnostic overlay on its parent camera's preview or recording target.
+        private void LateUpdate()
+        {
+            Camera scene = transform.parent != null ? transform.parent.GetComponent<Camera>() : null;
+            if (scene != null)
+            {
+                GetComponent<Camera>().targetTexture = scene.targetTexture;
+            }
+        }
+
         // Matches the scene projection and renders only the diagnostic layer.
         public Camera Configure(Camera sceneCamera, int overlayLayer)
         {

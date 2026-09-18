@@ -7,6 +7,7 @@ namespace UnityMediaRecorder.Example
     public sealed class CameraViewSwitcher : MonoBehaviour
     {
         public Camera Camera1, Camera2;
+        public Camera ScreenCamera;
         public SampleCaptureController Captures;
         public RawImage Preview;
         public Toggle RecordCamera1, RecordCamera2, RecordScreen;
@@ -15,13 +16,13 @@ namespace UnityMediaRecorder.Example
         public Dropdown AntiAliasing;
         public Dropdown OutputFrameRate, OutputResolution;
         public Dropdown RenderResolution;
-        public Dropdown EncodingPreset;
         public Dropdown VideoCodec;
+        public Dropdown RecordingQuality;
         private RenderTexture _originalFixedPreview, _fixedPreview;
         private int _previousAntiAliasing;
         public Button RecordButton;
         public Text RecordButtonLabel, FullscreenButtonLabel;
-        private int _selectedCamera;
+        private int _selectedCamera = 2;
         private bool _quitAfterRecording;
         private Text _recordingStatus;
         // Applies the authored VSync choice after scene initialization.
@@ -88,15 +89,36 @@ namespace UnityMediaRecorder.Example
             {
                 SetVideoCodec(VideoCodec.value);
             }
-            if (EncodingPreset != null)
-            {
-                SetEncodingPreset(EncodingPreset.value);
-            }
+
+            InitializeRecordingQuality();
 
             if (RenderResolution != null)
             {
                 SetRenderResolution(RenderResolution.value);
             }
+        }
+
+        private void InitializeRecordingQuality()
+        {
+            if (RecordingQuality == null && OutputResolution != null)
+            {
+                RecordingQuality = Instantiate(OutputResolution, OutputResolution.transform.parent);
+                RecordingQuality.name = "RecordingQuality";
+                RecordingQuality.GetComponent<RectTransform>().anchoredPosition = new Vector2(-16, 328);
+            }
+            if (RecordingQuality == null) return;
+            // A cloned dropdown retains authored callbacks; quality must have its own callbacks.
+            RecordingQuality.onValueChanged = new Dropdown.DropdownEvent();
+            RecordingQuality.ClearOptions();
+            RecordingQuality.AddOptions(new System.Collections.Generic.List<string> { "Quality: Low", "Quality: Medium", "Quality: High" });
+            RecordingQuality.SetValueWithoutNotify(2);
+            RecordingQuality.onValueChanged.AddListener(SetRecordingQuality);
+            SetRecordingQuality(2);
+        }
+
+        public void SetRecordingQuality(int option)
+        {
+            Captures?.SetQualityPreset((RecordingQualityPreset)Mathf.Clamp(option, 0, 2));
         }
 
         // Applies the selected output frame-rate ceiling for future recordings.
@@ -109,12 +131,6 @@ namespace UnityMediaRecorder.Example
         public void SetOutputResolution(int option)
         {
             ApplyOutputSettings();
-        }
-
-        // Maps the five displayed P2–P6 options to their actual NVIDIA preset numbers.
-        public void SetEncodingPreset(int option)
-        {
-            Captures?.SetEncodingPreset(option + 2);
         }
 
         // Applies the selected codec to future camera and screen recordings.
@@ -290,11 +306,21 @@ namespace UnityMediaRecorder.Example
         // Updates the preview, recording controls and deferred application exit.
         private void Update()
         {
-            Camera selected = _selectedCamera == 0 ? Camera1 : Camera2;
+            Camera selected = _selectedCamera == 0 ? Camera1 : _selectedCamera == 1 ? Camera2 : ScreenCamera;
+            if (Captures != null && Captures.IsScreenRecording)
+            {
+                selected = ScreenCamera;
+            }
             if (Preview != null)
             {
                 Preview.texture = selected != null ? selected.targetTexture : null;
                 Preview.enabled = Preview.texture != null;
+            }
+
+            SampleDiagnostics diagnostics = GetComponent<SampleDiagnostics>();
+            if (diagnostics != null && diagnostics.ScreenFpsText != null)
+            {
+                diagnostics.ScreenFpsText.enabled = selected == ScreenCamera;
             }
 
             bool busy = Captures != null && Captures.IsCapturing;
@@ -318,10 +344,7 @@ namespace UnityMediaRecorder.Example
                 OutputResolution.interactable = !busy;
             }
 
-            if (EncodingPreset != null)
-            {
-                EncodingPreset.interactable = !busy;
-            }
+            if (RecordingQuality != null) RecordingQuality.interactable = !busy;
             if (VideoCodec != null)
             {
                 VideoCodec.interactable = !busy;
@@ -384,6 +407,12 @@ namespace UnityMediaRecorder.Example
         public void SelectCamera2()
         {
             _selectedCamera = 1;
+        }
+
+        // Returns to the stationary ground-level view used for screen recordings.
+        public void SelectScreenCamera()
+        {
+            _selectedCamera = 2;
         }
 
         // Starts selected recordings or finalizes the active session.
