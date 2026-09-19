@@ -61,7 +61,7 @@ printf '%s\n' 'Sample-prefixed output files will be purged before recording.'
 result=0
 "$player_path" --purge --render 4k --resolution 4k --fps 60 --codec h264 \
     --vsync on --aa 4 --quality high --record camera1,camera2 --duration 6 \
-    --quit-after-recording || result=$?
+    --statistics --quit-after-recording || result=$?
 
 report="$(latest_stats)"
 if [[ -n "$report" && "$report" != "$previous_report" ]]; then

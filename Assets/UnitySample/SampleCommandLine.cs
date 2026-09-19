@@ -103,6 +103,10 @@ namespace UnityRuntimeCameraRecorder.Example
                 {
                     "--single-output",
                     Array.Empty<string>()
+                },
+                {
+                    "--statistics",
+                    Array.Empty<string>()
                 }
             };
             string error = null;
@@ -257,6 +261,8 @@ namespace UnityRuntimeCameraRecorder.Example
             {
                 scene.Captures.SetDuration(float.Parse(duration, CultureInfo.InvariantCulture));
             }
+
+            scene.Captures.SetGenerateStatistics(options.ContainsKey("--statistics"));
 
             if (!options.TryGetValue("--record", out string record))
             {

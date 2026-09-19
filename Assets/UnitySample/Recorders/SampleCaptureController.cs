@@ -71,6 +71,7 @@ namespace UnityRuntimeCameraRecorder.Example
         private bool _recordFixed = true;
         private bool _recordScreen = true;
         private bool _singleVideoOutput;
+        private bool _generateStatistics;
         private UnityRuntimeCameraRecorder _screenRecorder;
         private int _expectedRecorderCount = 2;
         private RenderTexture _previousMainTarget;
@@ -228,6 +229,15 @@ namespace UnityRuntimeCameraRecorder.Example
             HandleFinalizationStarted();
             StopAllCoroutines();
             StopSelectedRecorders();
+        }
+
+        // Enables per-video statistics for subsequent recording sessions.
+        public void SetGenerateStatistics(bool enabled)
+        {
+            if (!IsCapturing)
+            {
+                _generateStatistics = enabled;
+            }
         }
 
         // Stops each selected recorder so its writer can finalize independently.
@@ -495,7 +505,7 @@ namespace UnityRuntimeCameraRecorder.Example
             {
                 FfmpegPath = _ffmpegPath,
                 TemporaryContainerPath = Path.Combine(directory, $"{baseName}.mkv.tmp"),
-                GenerateStatistics = true,
+                GenerateStatistics = _generateStatistics,
                 OutputPath = Path.Combine(directory, $"{baseName}.mp4"),
                 Width = width,
                 Height = height,

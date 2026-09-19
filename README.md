@@ -45,7 +45,7 @@ The archive is written to `Builds/Packages/UnitySample-Windows-x64.zip`. It cont
 With `FFMPEG_PATH` set in the launching process:
 
 ```bash
-./Builds/Windows/UnitySample.exe --render 4k --resolution 4k --fps 60 --codec h264 --quality high --vsync on --aa 4 --record camera1,camera2 --duration 30 --quit-after-recording
+./Builds/Windows/UnitySample.exe --render 4k --resolution 4k --fps 60 --codec h264 --quality high --vsync on --aa 4 --record camera1,camera2 --duration 30 --statistics --quit-after-recording
 ```
 
 Switches use the same settings as the UI:
@@ -62,6 +62,7 @@ Switches use the same settings as the UI:
 | `--record` | Comma-separated `camera1,camera2,screen`; `both` or `all` also accepted |
 | `--single-output` | Combine all selected recording sources into one automatically edited MP4 |
 | `--duration` | Seconds, at least `0.1` |
+| `--statistics` | Generate a statistics text file for each output video |
 | `--quit-after-recording` | Finalize and exit; requires `--record` |
 | `--purge` | Permanently delete only sample-prefixed output files before recording |
 
@@ -69,7 +70,7 @@ Without `--record`, the app only previews. Keep it visible: batch/headless playe
 
 ## Output and editing
 
-Videos, per-video `*.stats.txt` files and session `*.stats.json` files go into `output` beside the executable (project root in Play mode). The **Export JPG** button writes one second of JPEG frames into a subdirectory. Statistics include Unity render FPS; output FPS is a ceiling. Edit UI positions under `Diagnostics > ApplicationCanvas` outside Play mode.
+Videos go into `output` beside the executable (project root in Play mode). With `--statistics`, each video also produces a `*.stats.txt` file. The **Export JPG** button writes one second of JPEG frames into a subdirectory. Statistics include Unity render FPS; output FPS is a ceiling. Edit UI positions under `Diagnostics > ApplicationCanvas` outside Play mode.
 
 The bundled libraries are [UnityRuntimeCameraRecorder](https://github.com/UnityRuntimeCameraRecorder/UnityRuntimeCameraRecorder), [Direct3DVideoEncoder](https://github.com/UnityRuntimeCameraRecorder/Direct3DVideoEncoder) and [FFmpegMediaWriter](https://github.com/UnityRuntimeCameraRecorder/FFmpegMediaWriter).
 
