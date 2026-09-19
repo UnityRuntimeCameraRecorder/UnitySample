@@ -1,0 +1,28 @@
+<Project>
+  <PropertyGroup>
+    <UnityPlayerDirectory>$(MSBuildThisFileDirectory)Builds\Windows</UnityPlayerDirectory>
+    <UnityPackageDirectory>$(MSBuildThisFileDirectory)Builds\Packages</UnityPackageDirectory>
+    <UnityPackageStagingDirectory>$(UnityPackageDirectory)\UnitySample-Windows-x64</UnityPackageStagingDirectory>
+    <UnityPackagePath>$(UnityPackageDirectory)\UnitySample-Windows-x64.zip</UnityPackagePath>
+  </PropertyGroup>
+
+  <Target Name="Package">
+    <Error Condition="'$(OS)' != 'Windows_NT'" Text="The UnitySample package target currently supports Windows only." />
+    <Exec WorkingDirectory="$(MSBuildThisFileDirectory)" Command="bash ./build.sh" />
+    <Error Condition="!Exists('$(UnityPlayerDirectory)\UnitySample.exe')" Text="The Unity Windows player was not produced." />
+
+    <RemoveDir Directories="$(UnityPackageStagingDirectory)" />
+    <MakeDir Directories="$(UnityPackageStagingDirectory)" />
+    <ItemGroup>
+      <UnityPackageFile Include="$(UnityPlayerDirectory)\**\*"
+                        Exclude="$(UnityPlayerDirectory)\output\**\*;$(UnityPlayerDirectory)\**\ffmpeg.exe;$(UnityPlayerDirectory)\**\ffprobe.exe" />
+    </ItemGroup>
+    <Copy SourceFiles="@(UnityPackageFile)"
+          DestinationFiles="@(UnityPackageFile->'$(UnityPackageStagingDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <ZipDirectory SourceDirectory="$(UnityPackageStagingDirectory)"
+                  DestinationFile="$(UnityPackagePath)"
+                  Overwrite="true" />
+    <RemoveDir Directories="$(UnityPackageStagingDirectory)" />
+    <Message Importance="high" Text="Package created: $(UnityPackagePath)" />
+  </Target>
+</Project>

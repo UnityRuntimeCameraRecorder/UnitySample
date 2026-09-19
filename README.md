@@ -22,6 +22,14 @@ bash ./build.sh
 
 The script builds for the current OS into `Builds/Windows`, `Builds/Linux` or `Builds/macOS`; logs go to `build.log`. It uses the included plugin DLLs. Linux/macOS players support preview, not the current NVIDIA video backend; they have not been tested locally.
 
+On Windows, build and package the Release player with MSBuild:
+
+```bash
+dotnet msbuild Assembly-CSharp.csproj -t:package
+```
+
+The archive is written to `Builds/Packages/UnitySample-Windows-x64.zip`. It contains the Unity player, `UnityRuntimeCameraRecorder.dll`, `Direct3DVideoEncoder.dll` and `FFmpegMediaWriter.dll`. FFmpeg and FFprobe executables are deliberately excluded and must be installed separately.
+
 ## Command-line example
 
 With `FFMPEG_PATH` set in the launching process:
