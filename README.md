@@ -1,6 +1,6 @@
 # UnitySample
 
-An editable Unity scene demonstrating camera recording: a lit cube, wind-blown grass, particles and mist, with an orbit camera and a fixed camera.
+An editable Unity sample demonstrating runtime recording from two cameras and the player screen, either as separate videos or as one automatically edited multi-source video.
 
 ## Run and record
 
@@ -76,4 +76,4 @@ The Quality menu selects Low, Medium or High (default); H.264 is the default cod
 
 ## Resources
 
-Sample music: ["Iced Out" by LSPLASH](https://soundcloud.com/lightningsplash/icedout), available for use in videos and livestreams.
+Soundtrack: ["Iced Out" by LSPLASH](https://soundcloud.com/lightningsplash/icedout), available for use in videos and livestreams.
