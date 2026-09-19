@@ -67,6 +67,7 @@ namespace UnityMediaRecorder.Example
         private bool _recordMain = true;
         private bool _recordFixed = true;
         private bool _recordScreen = true;
+        private bool _singleVideoOutput;
         private UnityMediaRecorder _screenRecorder;
         private int _expectedRecorderCount = 2;
         private RenderTexture _previousMainTarget;
@@ -195,7 +196,7 @@ namespace UnityMediaRecorder.Example
         }
 
         // Records only the cameras selected by the screen controls.
-        public void BeginCapture(bool camera1, bool camera2, bool screen = false)
+        public void BeginCapture(bool camera1, bool camera2, bool screen = false, bool singleVideoOutput = false)
         {
             if (IsCapturing || (!camera1 && !camera2 && !screen))
             {
@@ -205,7 +206,8 @@ namespace UnityMediaRecorder.Example
             _recordMain = camera1;
             _recordFixed = camera2;
             _recordScreen = screen;
-            _expectedRecorderCount = (camera1 ? 1 : 0) + (camera2 ? 1 : 0) + (screen ? 1 : 0);
+            _singleVideoOutput = singleVideoOutput && camera1 && camera2 && !screen;
+            _expectedRecorderCount = _singleVideoOutput ? 1 : (camera1 ? 1 : 0) + (camera2 ? 1 : 0) + (screen ? 1 : 0);
             _benchmarkMode = "dual-nvenc";
             BeginCapture();
         }
@@ -227,6 +229,11 @@ namespace UnityMediaRecorder.Example
         // Stops each selected recorder so its writer can finalize independently.
         private void StopSelectedRecorders()
         {
+            if (_singleVideoOutput)
+            {
+                _recorder.StopRecording();
+                return;
+            }
             if (_recordMain)
             {
                 _recorder.StopRecording();
@@ -410,6 +417,21 @@ namespace UnityMediaRecorder.Example
         private void StartSelectedRecorders(string directory, string baseName, int width, int height, int frameRate, int antiAliasingSamples)
         {
             AudioListener listener = _camera.GetComponent<AudioListener>();
+            if (_singleVideoOutput)
+            {
+                RecordingSettings settings = CreateRecordingSettings(directory, $"{baseName}_CameraSequence", width, height, frameRate, antiAliasingSamples);
+                var sequence = new CameraSequenceSettings
+                {
+                    Cameras = new[] { _camera, _staticCamera },
+                    Order = CameraSequenceOrder.Random,
+                    MinimumShotDurationSeconds = 5f,
+                    MaximumShotDurationSeconds = 10f,
+                    CrossFadeDurationSeconds = 1f,
+                    Transitions = new[] { CameraSequenceTransition.CrossFade }
+                };
+                _recorder.StartRecording(sequence, listener, settings);
+                return;
+            }
             if (_recordMain)
             {
                 RecordingSettings settings = CreateRecordingSettings(directory, $"{baseName}_MainCamera", width, height, frameRate, antiAliasingSamples);

@@ -11,6 +11,7 @@ namespace UnityMediaRecorder.Example
         public SampleCaptureController Captures;
         public RawImage Preview;
         public Toggle RecordCamera1, RecordCamera2, RecordScreen;
+        public Toggle SingleVideoOutput;
         public Toggle VSync;
         public Toggle Fullscreen;
         public Dropdown AntiAliasing;
@@ -91,10 +92,61 @@ namespace UnityMediaRecorder.Example
             }
 
             InitializeRecordingQuality();
+            InitializeSingleOutputToggle();
 
             if (RenderResolution != null)
             {
                 SetRenderResolution(RenderResolution.value);
+            }
+        }
+
+        // Creates the optional single-output camera sequence control when the scene has not authored it.
+        private void InitializeSingleOutputToggle()
+        {
+            if (SingleVideoOutput != null || RecordCamera1 == null)
+            {
+                return;
+            }
+            Vector2 singleOutputPosition = RecordScreen.GetComponent<RectTransform>().anchoredPosition;
+            ShiftControlUp(VideoCodec);
+            ShiftControlUp(RecordingQuality);
+            ShiftControlUp(OutputResolution);
+            ShiftControlUp(OutputFrameRate);
+            ShiftControlUp(RecordCamera1);
+            ShiftControlUp(RecordCamera2);
+            ShiftControlUp(RecordScreen);
+            SingleVideoOutput = Instantiate(RecordScreen, RecordScreen.transform.parent);
+            SingleVideoOutput.name = "SingleVideoOutput";
+            SingleVideoOutput.SetIsOnWithoutNotify(false);
+            SingleVideoOutput.onValueChanged = new Toggle.ToggleEvent();
+            SingleVideoOutput.onValueChanged.AddListener(SetSingleVideoOutput);
+            RectTransform rect = SingleVideoOutput.GetComponent<RectTransform>();
+            rect.anchoredPosition = singleOutputPosition;
+            Text label = SingleVideoOutput.transform.Find("Label")?.GetComponent<Text>();
+            if (label != null)
+            {
+                label.text = "One video output";
+            }
+        }
+
+        // Selects the two renderable cameras once when single-output mode is enabled.
+        private void SetSingleVideoOutput(bool enabled)
+        {
+            if (!enabled)
+            {
+                return;
+            }
+            RecordCamera1.SetIsOnWithoutNotify(true);
+            RecordCamera2.SetIsOnWithoutNotify(true);
+            RecordScreen.SetIsOnWithoutNotify(false);
+        }
+
+        // Moves one recording control upward to make room for the single-output toggle.
+        private static void ShiftControlUp(Component control)
+        {
+            if (control != null)
+            {
+                control.GetComponent<RectTransform>().anchoredPosition += new Vector2(0, 44);
             }
         }
 
@@ -366,6 +418,11 @@ namespace UnityMediaRecorder.Example
                 RecordScreen.interactable = !busy;
             }
 
+            if (SingleVideoOutput != null)
+            {
+                SingleVideoOutput.interactable = !busy;
+            }
+
             if (RecordButton != null)
             {
                 RecordButton.interactable = Captures != null && (busy || RecordCamera1.isOn || RecordCamera2.isOn || RecordScreen.isOn);
@@ -425,7 +482,9 @@ namespace UnityMediaRecorder.Example
             }
             else
             {
-                Captures.BeginCapture(RecordCamera1.isOn, RecordCamera2.isOn, RecordScreen.isOn);
+                bool singleOutput = SingleVideoOutput != null && SingleVideoOutput.isOn;
+                SetSingleVideoOutput(singleOutput);
+                Captures.BeginCapture(RecordCamera1.isOn, RecordCamera2.isOn, RecordScreen.isOn, singleOutput);
             }
         }
 
