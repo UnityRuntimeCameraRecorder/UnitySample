@@ -318,7 +318,6 @@ namespace UnityMediaRecorder.Example
                 screen = _recordScreen,
                 requestedDurationSeconds = _stopAfterDuration ? CaptureDurationSeconds : 0
             };
-            WriteSessionStats("preparing");
             _preparedTarget = new RenderTexture(_renderWidth, _renderHeight, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             _preparedTarget.antiAliasing = antiAliasingSamples;
             _preparedTarget.Create();
@@ -427,7 +426,6 @@ namespace UnityMediaRecorder.Example
             {
                 RecordingSettings settings = CreateRecordingSettings(directory, $"{baseName}_Screen", width, height, frameRate, 1);
                 settings.CaptureScreen = true;
-                settings.FlipVertically = false;
                 _screenRecorder.StartRecording(_camera, listener, settings);
             }
         }
@@ -443,6 +441,7 @@ namespace UnityMediaRecorder.Example
                 ArchivePath = Path.Combine(directory, $"{baseName}.mkv"),
                 KeepIntermediateFile = Environment.GetEnvironmentVariable("CAPTURE_KEEP_INTERMEDIATE") == "1",
                 GeneratePreviewImage = false,
+                GenerateStatistics = true,
                 OutputPath = Path.Combine(directory, $"{baseName}.mp4"),
                 Width = width,
                 Height = height,
@@ -450,8 +449,7 @@ namespace UnityMediaRecorder.Example
                 AntiAliasingSamples = antiAliasingSamples,
                 QualityPreset = _qualityPreset,
                 VideoStreamFormat = _videoCodec,
-                OptimizeForConcurrentEncoding = _expectedRecorderCount >= 2,
-                FlipVertically = SystemInfo.graphicsUVStartsAtTop
+                OptimizeForConcurrentEncoding = _expectedRecorderCount >= 2
             };
         }
 
@@ -488,7 +486,6 @@ namespace UnityMediaRecorder.Example
             }
 
             BeginMeasurement();
-            WriteSessionStats("recording");
             StatusText = $"Recording — NVIDIA video encoding • {_width} × {_height} • up to {_frameRate} FPS • {_expectedRecorderCount} output(s)";
             Debug.Log("Sample capture started.");
         }
@@ -520,12 +517,7 @@ namespace UnityMediaRecorder.Example
                 return;
             }
 
-            HandleFinalizationStarted();
-            _sessionStats.finalizationDurationSeconds = Time.realtimeSinceStartup - _finalizationStartTime;
-            UnityMediaRecorder diagnosticsRecorder = _recordMain ? _recorder : _recordFixed ? _staticRecorder : _screenRecorder;
-            _sessionStats.videoDiagnosticsJson = diagnosticsRecorder?.LastVideoDiagnosticsJson;
-            StatusText = "Generating video statistics…";
-            StartCoroutine(CompleteRecordingWithoutBlocking());
+            FinishCompletedRecording();
         }
 
         // Waits for background FFprobe work while keeping the Unity frame loop responsive.
@@ -557,7 +549,6 @@ namespace UnityMediaRecorder.Example
         // Writes final statistics and releases recording resources on the Unity thread.
         private void FinishCompletedRecording()
         {
-            WriteSessionStats("completed");
             float elapsed = Math.Max(0.001f, Time.realtimeSinceStartup - _captureStartTime);
             float mainAverageFps = _diagnostics.MainRenderedFrames / elapsed;
             float staticAverageFps = _diagnostics.StaticRenderedFrames / elapsed;
@@ -687,7 +678,6 @@ namespace UnityMediaRecorder.Example
         {
             Debug.LogException(exception);
             HandleFinalizationStarted();
-            WriteSessionStats("failed", exception.Message);
             StatusText = "Recording failed — see the Unity Console for details";
             StopAllCoroutines();
             _diagnostics.EndMeasurement();
@@ -713,7 +703,6 @@ namespace UnityMediaRecorder.Example
             _sessionStats.camera1AverageRenderFps = elapsed > 0 ? _sessionStats.camera1RenderedFrames / elapsed : 0;
             _sessionStats.camera2AverageRenderFps = elapsed > 0 ? _sessionStats.camera2RenderedFrames / elapsed : 0;
             _sessionStats.screenAverageRenderFps = elapsed > 0 ? _sessionStats.screenRenderedFrames / elapsed : 0;
-            WriteSessionStats("finalizing");
         }
 
         // Writes a readable session report without letting a statistics I/O error interrupt recording.
