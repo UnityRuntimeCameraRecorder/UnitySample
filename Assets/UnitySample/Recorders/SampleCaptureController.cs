@@ -38,7 +38,7 @@ namespace UnityRuntimeCameraRecorder.Example
         }
         [SerializeField]
         private string _mode = "dual-nvenc";
-        private string _ffmpegPath;
+        private string _ffmpegDirectory;
         [SerializeField, Min(2)]
         private int _width = 3840;
         [SerializeField, Min(2)]
@@ -178,7 +178,7 @@ namespace UnityRuntimeCameraRecorder.Example
             {
                 try
                 {
-                    _ffmpegPath = FfmpegEnvironment.GetExecutablePath();
+                    _ffmpegDirectory = FfmpegEnvironment.GetBinDirectory();
                 }
                 catch (Exception exception)
                 {
@@ -503,7 +503,7 @@ namespace UnityRuntimeCameraRecorder.Example
             _videoFiles.Add(Path.Combine(directory, $"{baseName}.mp4"));
             return new RecordingSettings
             {
-                FfmpegPath = _ffmpegPath,
+                FfmpegPath = _ffmpegDirectory,
                 TemporaryContainerPath = Path.Combine(directory, $"{baseName}.mkv.tmp"),
                 GenerateStatistics = _generateStatistics,
                 OutputPath = Path.Combine(directory, $"{baseName}.mp4"),
@@ -589,7 +589,7 @@ namespace UnityRuntimeCameraRecorder.Example
         {
             float statisticsStartTime = Time.realtimeSinceStartup;
             string[] videoFiles = _videoFiles.ToArray();
-            string probePath = Path.Combine(Path.GetDirectoryName(_ffmpegPath), "ffprobe.exe");
+            string probePath = Path.Combine(_ffmpegDirectory, "ffprobe.exe");
             float requestedDuration = _sessionStats.requestedDurationSeconds;
             Task<VideoMeasurements> task = Task.Run(() => MeasureCompletedVideos(probePath, videoFiles, requestedDuration));
             while (!task.IsCompleted)

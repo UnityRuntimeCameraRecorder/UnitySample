@@ -281,7 +281,7 @@ namespace UnityRuntimeCameraRecorder.Example
             yield return new WaitForSecondsRealtime(1);
             try
             {
-                FfmpegEnvironment.GetExecutablePath();
+                FfmpegEnvironment.GetBinDirectory();
             }
             catch (Exception exception)
             {

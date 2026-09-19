@@ -18,7 +18,7 @@ Git Bash:
 export FFMPEG_PATH='/c/tools/ffmpeg/bin'
 ```
 
-`UnitySample` resolves `ffmpeg.exe` and `ffprobe.exe` inside this directory. This environment variable is specific to the sample; the recorder API still expects the full executable path in `RecordingSettings.FfmpegPath`.
+`UnitySample` passes this directory to `RecordingSettings.FfmpegPath`. The recorder resolves `ffmpeg.exe` and, when statistics are enabled, `ffprobe.exe` inside it.
 
 Open `Assets/Scenes/RecordingSample.unity` in Unity **6000.0.61f1**, press Play, select Camera 1, Camera 2 and/or Screen, then click **Record**. Each selected source produces a separate MP4, and Screen includes the application UI. Recording continues until **Stop recording** is clicked. An explicit command-line `--duration` requests a timed recording. **Stop recording** finalizes the files.
 
