@@ -420,7 +420,7 @@ namespace UnityMediaRecorder.Example
             AudioListener listener = _camera.GetComponent<AudioListener>();
             if (_singleVideoOutput)
             {
-                RecordingSettings settings = CreateRecordingSettings(directory, $"{baseName}_CameraSequence", width, height, frameRate, antiAliasingSamples);
+                RecordingSettings settings = CreateRecordingSettings(directory, $"{baseName}_VideoSequence", width, height, frameRate, antiAliasingSamples);
                 var sources = new List<VideoSequenceSource>();
                 if (_recordMain)
                 {
@@ -434,17 +434,17 @@ namespace UnityMediaRecorder.Example
                 {
                     sources.Add(VideoSequenceSource.FromScreen());
                 }
-                var sequence = new CameraSequenceSettings
+                var sequence = new VideoSequenceSettings
                 {
                     Sources = sources,
-                    Order = CameraSequenceOrder.Random,
+                    Order = VideoSequenceOrder.Random,
                     MinimumShotDurationSeconds = 4f,
                     MaximumShotDurationSeconds = 8f,
                     CrossFadeDurationSeconds = 0.5f,
                     Transitions = new[]
                     {
-                        CameraSequenceTransition.CrossFade,
-                        CameraSequenceTransition.NoTransition
+                        VideoSequenceTransition.CrossFade,
+                        VideoSequenceTransition.NoTransition
                     }
                 };
                 _recorder.StartRecording(sequence, listener, settings);
@@ -453,21 +453,29 @@ namespace UnityMediaRecorder.Example
             if (_recordMain)
             {
                 RecordingSettings settings = CreateRecordingSettings(directory, $"{baseName}_MainCamera", width, height, frameRate, antiAliasingSamples);
-                _recorder.StartRecording(_overlayCamera, listener, settings, _preparedTarget);
+                _recorder.StartRecording(CreateSingleSourceSequence(VideoSequenceSource.FromCamera(_overlayCamera)), listener, settings);
             }
 
             if (_recordFixed)
             {
                 RecordingSettings settings = CreateRecordingSettings(directory, $"{baseName}_StaticCamera", width, height, frameRate, antiAliasingSamples);
-                _staticRecorder.StartRecording(_staticCamera, listener, settings, _staticPreparedTarget);
+                _staticRecorder.StartRecording(CreateSingleSourceSequence(VideoSequenceSource.FromCamera(_staticCamera)), listener, settings);
             }
 
             if (_recordScreen)
             {
                 RecordingSettings settings = CreateRecordingSettings(directory, $"{baseName}_Screen", width, height, frameRate, 1);
-                settings.CaptureScreen = true;
-                _screenRecorder.StartRecording(_camera, listener, settings);
+                _screenRecorder.StartRecording(CreateSingleSourceSequence(VideoSequenceSource.FromScreen()), listener, settings);
             }
+        }
+
+        // Wraps one explicit source in the same configuration used by multi-source recordings.
+        private static VideoSequenceSettings CreateSingleSourceSequence(VideoSequenceSource source)
+        {
+            return new VideoSequenceSettings
+            {
+                Sources = new[] { source }
+            };
         }
 
         // Creates one independent output configuration for a synchronized camera recording.
@@ -486,7 +494,7 @@ namespace UnityMediaRecorder.Example
                 Width = width,
                 Height = height,
                 MaximumFrameRate = frameRate,
-                AntiAliasingSamples = antiAliasingSamples,
+                SourceAntiAliasingSamples = antiAliasingSamples,
                 QualityPreset = _qualityPreset,
                 VideoStreamFormat = _videoCodec,
                 OptimizeForConcurrentEncoding = _expectedRecorderCount >= 2
