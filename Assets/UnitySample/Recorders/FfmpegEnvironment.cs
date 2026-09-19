@@ -3,21 +3,29 @@ using System.IO;
 
 namespace UnityRuntimeCameraRecorder.Example
 {
-    // Reads the sample's external FFmpeg executable exclusively from the process environment.
+    // Resolves the sample's external FFmpeg tools from the process environment.
     internal static class FfmpegEnvironment
     {
-        // Requires an absolute existing executable path in FFMPEG_PATH before recording starts.
+        // Requires FFMPEG_PATH to contain the FFmpeg and FFprobe executables.
         internal static string GetExecutablePath()
         {
-            string executable = Environment.GetEnvironmentVariable("FFMPEG_PATH");
-            if (string.IsNullOrWhiteSpace(executable))
+            string directory = Environment.GetEnvironmentVariable("FFMPEG_PATH");
+            if (string.IsNullOrWhiteSpace(directory))
             {
-                throw new InvalidOperationException("Set FFMPEG_PATH to the full path of the FFmpeg executable.");
+                throw new InvalidOperationException("Set FFMPEG_PATH to the absolute path of the FFmpeg bin directory.");
             }
-            if (!Path.IsPathFullyQualified(executable) || !File.Exists(executable))
+            if (!Path.IsPathFullyQualified(directory) || !Directory.Exists(directory))
             {
-                throw new FileNotFoundException("FFMPEG_PATH must point to an existing executable using its full path.", executable);
+                throw new DirectoryNotFoundException("FFMPEG_PATH must point to an existing FFmpeg bin directory: " + directory);
             }
+
+            string executable = Path.Combine(directory, "ffmpeg.exe");
+            string probe = Path.Combine(directory, "ffprobe.exe");
+            if (!File.Exists(executable) || !File.Exists(probe))
+            {
+                throw new FileNotFoundException("FFMPEG_PATH must contain ffmpeg.exe and ffprobe.exe.", directory);
+            }
+
             return executable;
         }
     }

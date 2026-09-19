@@ -8,7 +8,21 @@ Set `CAPTURE_KEEP_INTERMEDIATE=1` before recording to keep the MKV files with lo
 
 ## Run and record
 
-Video recording requires Windows x64, an NVIDIA NVENC GPU with a recent driver, and [FFmpeg](https://ffmpeg.org/download.html). Set `FFMPEG_PATH` to its full executable path before launching Unity or the app.
+Video recording requires Windows x64, an NVIDIA NVENC GPU with a recent driver, and [FFmpeg](https://ffmpeg.org/download.html). Set `FFMPEG_PATH` to the absolute path of the FFmpeg `bin` directory containing `ffmpeg.exe` and `ffprobe.exe` before launching Unity or the app.
+
+PowerShell:
+
+```powershell
+$env:FFMPEG_PATH = "C:\tools\ffmpeg\bin"
+```
+
+Git Bash:
+
+```bash
+export FFMPEG_PATH='/c/tools/ffmpeg/bin'
+```
+
+`UnitySample` resolves `ffmpeg.exe` and `ffprobe.exe` inside this directory. This environment variable is specific to the sample; the recorder API still expects the full executable path in `RecordingSettings.FfmpegPath`.
 
 Open `Assets/Scenes/RecordingSample.unity` in Unity **6000.0.61f1**, press Play, select Camera 1, Camera 2 and/or Screen, then click **Record**. Each selected source produces a separate MP4, and Screen includes the application UI. Recording continues until **Stop recording** is clicked. An explicit command-line `--duration` requests a timed recording. **Stop recording** finalizes the files.
 

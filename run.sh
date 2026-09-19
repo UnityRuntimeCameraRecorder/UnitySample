@@ -23,7 +23,7 @@ if [[ $# -gt 0 ]]; then
     if [[ $# -eq 1 && ( "$1" == --help || "$1" == -h ) ]]; then
         printf '%s\n' \
             'Usage: bash run.sh' \
-            'Requires a Windows/NVIDIA build and FFMPEG_PATH pointing to FFmpeg.' \
+            'Requires a Windows/NVIDIA build and FFMPEG_PATH pointing to the FFmpeg bin directory.' \
             'Records camera1 + camera2 for 6 seconds and measures FPS from second 1 to 6.' \
             'Purges only sample-prefixed output files before recording.'
         exit 0
@@ -36,10 +36,12 @@ case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*)
         player_path="$project_directory/Builds/Windows/UnitySample.exe"
         command -v cygpath >/dev/null 2>&1 || fail 'Run this script using Git Bash on Windows.'
-        [[ -n "${FFMPEG_PATH:-}" ]] || fail 'Set FFMPEG_PATH to the full path of the FFmpeg executable.'
-        ffmpeg_file="$(cygpath -u "$FFMPEG_PATH")"
-        [[ -f "$ffmpeg_file" && -x "$ffmpeg_file" ]] || fail 'FFMPEG_PATH does not point to an executable file.'
-        export FFMPEG_PATH="$(cygpath -m "$ffmpeg_file")"
+        [[ -n "${FFMPEG_PATH:-}" ]] || fail 'Set FFMPEG_PATH to the FFmpeg bin directory.'
+        ffmpeg_directory="$(cygpath -u "$FFMPEG_PATH")"
+        [[ -d "$ffmpeg_directory" ]] || fail 'FFMPEG_PATH does not point to an existing directory.'
+        [[ -f "$ffmpeg_directory/ffmpeg.exe" && -x "$ffmpeg_directory/ffmpeg.exe" ]] || fail 'FFMPEG_PATH does not contain ffmpeg.exe.'
+        [[ -f "$ffmpeg_directory/ffprobe.exe" && -x "$ffmpeg_directory/ffprobe.exe" ]] || fail 'FFMPEG_PATH does not contain ffprobe.exe.'
+        export FFMPEG_PATH="$(cygpath -m "$ffmpeg_directory")"
         export MSYS2_ARG_CONV_EXCL='*'
         ;;
     Linux|Darwin)
