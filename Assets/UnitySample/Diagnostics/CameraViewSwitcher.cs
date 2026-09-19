@@ -119,7 +119,6 @@ namespace UnityMediaRecorder.Example
             SingleVideoOutput.name = "SingleVideoOutput";
             SingleVideoOutput.SetIsOnWithoutNotify(false);
             SingleVideoOutput.onValueChanged = new Toggle.ToggleEvent();
-            SingleVideoOutput.onValueChanged.AddListener(SetSingleVideoOutput);
             RectTransform rect = SingleVideoOutput.GetComponent<RectTransform>();
             rect.anchoredPosition = singleOutputPosition;
             Text label = SingleVideoOutput.transform.Find("Label")?.GetComponent<Text>();
@@ -127,18 +126,6 @@ namespace UnityMediaRecorder.Example
             {
                 label.text = "One video output";
             }
-        }
-
-        // Selects the two renderable cameras once when single-output mode is enabled.
-        private void SetSingleVideoOutput(bool enabled)
-        {
-            if (!enabled)
-            {
-                return;
-            }
-            RecordCamera1.SetIsOnWithoutNotify(true);
-            RecordCamera2.SetIsOnWithoutNotify(true);
-            RecordScreen.SetIsOnWithoutNotify(false);
         }
 
         // Moves one recording control upward to make room for the single-output toggle.
@@ -425,7 +412,9 @@ namespace UnityMediaRecorder.Example
 
             if (RecordButton != null)
             {
-                RecordButton.interactable = Captures != null && (busy || RecordCamera1.isOn || RecordCamera2.isOn || RecordScreen.isOn);
+                int selectedSources = (RecordCamera1.isOn ? 1 : 0) + (RecordCamera2.isOn ? 1 : 0) + (RecordScreen.isOn ? 1 : 0);
+                bool validSelection = SingleVideoOutput != null && SingleVideoOutput.isOn ? selectedSources >= 2 : selectedSources >= 1;
+                RecordButton.interactable = Captures != null && (busy || validSelection);
             }
 
             if (RecordButtonLabel != null)
@@ -483,7 +472,6 @@ namespace UnityMediaRecorder.Example
             else
             {
                 bool singleOutput = SingleVideoOutput != null && SingleVideoOutput.isOn;
-                SetSingleVideoOutput(singleOutput);
                 Captures.BeginCapture(RecordCamera1.isOn, RecordCamera2.isOn, RecordScreen.isOn, singleOutput);
             }
         }
