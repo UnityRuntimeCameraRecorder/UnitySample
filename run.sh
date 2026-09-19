@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Record camera 1 and the application screen, then display this session's statistics.
+# Record both cameras for six seconds and measure FPS after the first second.
 set -euo pipefail
 
 # Report a configuration error before recording or purging any output files.
@@ -24,7 +24,7 @@ if [[ $# -gt 0 ]]; then
         printf '%s\n' \
             'Usage: bash run.sh' \
             'Requires a Windows/NVIDIA build and FFMPEG_PATH pointing to FFmpeg.' \
-            'Records camera1 + screen for 10 seconds: 4K input/output, 60 FPS max, HEVC, P5, VSync, MSAA 4x.' \
+            'Records camera1 + camera2 for 6 seconds and measures FPS from second 1 to 6.' \
             'Purges only sample-prefixed output files before recording.'
         exit 0
     fi
@@ -54,11 +54,11 @@ esac
 output_directory="$(dirname -- "$player_path")/output"
 previous_report="$(latest_stats)"
 
-printf '%s\n' 'Recording camera 1 and screen for 10 seconds: 4K input/output, 60 FPS max, HEVC, P5, VSync, MSAA 4x.'
+printf '%s\n' 'Recording camera 1 and camera 2 for 6 seconds; FPS measurement uses seconds 1 through 6.'
 printf '%s\n' 'Sample-prefixed output files will be purged before recording.'
 result=0
 "$player_path" --purge --render 4k --resolution 4k --fps 60 --codec h264 \
-    --vsync on --aa 4 --quality high --record camera1,screen --duration 10 \
+    --vsync on --aa 4 --quality high --record camera1,camera2 --duration 6 \
     --quit-after-recording || result=$?
 
 report="$(latest_stats)"
@@ -66,7 +66,7 @@ if [[ -n "$report" && "$report" != "$previous_report" ]]; then
     printf '\nRecording session statistics\n'
     cat -- "$report"
     printf '\nReport: %s\n' "$report"
-    printf '%s\n' 'Frame counts above measure Unity rendering, not encoded video frames.'
+    printf '%s\n' 'videoActualFps uses only the five-second window from second 1 to second 6.'
 else
     printf '%s\n' 'WARNING: no new session statistics were produced.' >&2
 fi

@@ -10,7 +10,7 @@ Set `CAPTURE_KEEP_INTERMEDIATE=1` before recording to keep the MKV files with lo
 
 Video recording requires Windows x64, an NVIDIA NVENC GPU with a recent driver, and [FFmpeg](https://ffmpeg.org/download.html). Set `FFMPEG_PATH` to its full executable path before launching Unity or the app.
 
-Open `Assets/Scenes/RecordingSample.unity` in Unity **6000.0.61f1**, press Play, select Camera 1, Camera 2 and/or Screen, then click **Record**. Recording produces one MP4, cycling through the selected cameras every 4 seconds (Camera 1, Camera 2, then the ground-level Screen camera). Audio stays continuous; the Screen passages include the application UI. Recording continues until **Stop recording** is clicked. The camera cycle repeats indefinitely. An explicit command-line `--duration` still requests a timed recording. **Stop recording** finalizes the file.
+Open `Assets/Scenes/RecordingSample.unity` in Unity **6000.0.61f1**, press Play, select Camera 1, Camera 2 and/or Screen, then click **Record**. Each selected source produces a separate MP4, and Screen includes the application UI. Recording continues until **Stop recording** is clicked. An explicit command-line `--duration` requests a timed recording. **Stop recording** finalizes the files.
 
 ## Build
 

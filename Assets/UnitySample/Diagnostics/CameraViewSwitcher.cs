@@ -307,10 +307,6 @@ namespace UnityMediaRecorder.Example
         private void Update()
         {
             Camera selected = _selectedCamera == 0 ? Camera1 : _selectedCamera == 1 ? Camera2 : ScreenCamera;
-            if (Captures != null && Captures.IsScreenRecording)
-            {
-                selected = ScreenCamera;
-            }
             if (Preview != null)
             {
                 Preview.texture = selected != null ? selected.targetTexture : null;

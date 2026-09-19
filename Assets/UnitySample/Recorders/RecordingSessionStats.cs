@@ -13,10 +13,13 @@ namespace UnityMediaRecorder.Example
         public string videoCodec, qualityPreset, audioCodec, videoDiagnosticsJson;
         public int videoBitRate, maximumVideoBitRate, audioBitRate, audioSampleRate, audioChannels;
         public bool camera1, camera2, screen;
-        public float requestedDurationSeconds, captureDurationSeconds, finalizationDurationSeconds;
+        public float requestedDurationSeconds, captureDurationSeconds, finalizationDurationSeconds, statisticsGenerationDurationSeconds;
         public int camera1RenderedFrames, camera2RenderedFrames, screenRenderedFrames;
         public float camera1AverageRenderFps, camera2AverageRenderFps, screenAverageRenderFps;
         public string[] videoFiles;
         public long[] videoFileBytes;
+        public long[] videoEncodedFrames, videoMeasuredFrames;
+        public float[] videoDurationSeconds, videoMeasuredDurationSeconds, videoActualFps;
+        public float videoFpsWindowStartSeconds, videoFpsWindowEndSeconds;
     }
 }

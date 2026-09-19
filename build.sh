@@ -11,14 +11,19 @@ fail() {
 # Describe the command and its required Unity installation.
 usage() {
     printf '%s\n' \
-        'Usage: bash build.sh' \
+        'Usage: bash build.sh [clean]' \
+        'Use clean to remove player artifacts and the Unity Library cache before building.' \
         'Install Unity matching ProjectSettings/ProjectVersion.txt and its target build module.' \
         'Put Unity (Unity.exe on Windows) in PATH or set UNITY_EXECUTABLE to its full path.' \
         'Close this project in the Unity Editor before building.'
 }
 
+clean_build=false
 for argument in "$@"; do
     case "$argument" in
+        clean)
+            clean_build=true
+            ;;
         --help|-h)
             usage
             exit 0
@@ -82,8 +87,17 @@ else
 fi
 
 player_path="$project_directory/$player_relative_path"
-log_path="$project_directory/build.log"
-mkdir -p -- "$(dirname -- "$player_path")"
+logs_directory="$project_directory/Builds/Logs"
+log_path="$logs_directory/build.log"
+build_directory="$project_directory/Builds/$platform"
+[[ "$(dirname -- "$player_path")" == "$build_directory" ]] || fail 'The player path is outside its expected build directory.'
+mkdir -p -- "$build_directory" "$logs_directory"
+if [[ "$clean_build" == true ]]; then
+    printf 'Cleaning previous %s player artifacts.\n' "$platform"
+    find "$build_directory" -mindepth 1 -maxdepth 1 ! -name output -exec rm -rf -- {} +
+    printf '%s\n' 'Cleaning the Unity import cache for a full rebuild.'
+    rm -rf -- "$project_directory/Library"
+fi
 unity_project_path="$project_directory"
 unity_player_path="$player_path"
 unity_log_path="$log_path"
@@ -97,8 +111,12 @@ if [[ "$platform" == Windows ]]; then
 fi
 
 printf 'Building UnitySample for %s. Save your scene and close the editor first.\n' "$platform"
-if "$unity_executable" -batchmode -quit -projectPath "$unity_project_path" \
-    "$build_option" "$unity_player_path" -logFile "$unity_log_path"; then
+unity_arguments=(-batchmode -quit -projectPath "$unity_project_path")
+if [[ "$clean_build" == true ]]; then
+    unity_arguments+=(-cleanBuildCache)
+fi
+unity_arguments+=("$build_option" "$unity_player_path" -logFile "$unity_log_path")
+if "$unity_executable" "${unity_arguments[@]}"; then
     if [[ "$platform" == macOS ]]; then
         [[ -d "$player_path" && -x "$player_path/Contents/MacOS/UnitySample" ]] || fail "Unity returned success but the player is missing. See $log_path."
     else
