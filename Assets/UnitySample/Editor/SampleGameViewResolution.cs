@@ -26,7 +26,11 @@ namespace UnityRuntimeCameraRecorder.Example
                 object size = groupClass.GetMethod("GetGameViewSize", flags).Invoke(group, new object[] { i });
                 Type sizeType = size.GetType();
                 if ((int)sizeType.GetProperty("width", flags).GetValue(size) == width &&
-                    (int)sizeType.GetProperty("height", flags).GetValue(size) == height) { index = i; break; }
+                    (int)sizeType.GetProperty("height", flags).GetValue(size) == height)
+                {
+                    index = i;
+                    break;
+                }
             }
             if (index < 0)
             {

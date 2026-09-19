@@ -51,7 +51,10 @@ namespace UnityRuntimeCameraRecorder.Example
         private RecordingQualityPreset _qualityPreset = RecordingQualityPreset.High;
         public void SetQualityPreset(RecordingQualityPreset preset)
         {
-            if (!IsCapturing) _qualityPreset = preset;
+            if (!IsCapturing)
+            {
+                _qualityPreset = preset;
+            }
         }
         private FFmpegMediaWriter.VideoStreamFormat _videoCodec = FFmpegMediaWriter.VideoStreamFormat.H264;
         [SerializeField, Min(0.1f)]
@@ -346,12 +349,12 @@ namespace UnityRuntimeCameraRecorder.Example
 
             if (_recordMain)
             {
-                _recorder.StartPngSequence(_overlayCamera, CreatePngSequenceSettings(Path.Combine(directory, $"{baseName}_MainCamera_Frames"), width, height, antiAliasingSamples, 0.0), _preparedTarget);
+                _recorder.StartPngSequence(_overlayCamera, CreateImageSequenceSettings(Path.Combine(directory, $"{baseName}_MainCamera_Frames"), width, height, antiAliasingSamples, 0.0), _preparedTarget);
             }
 
             if (_recordFixed)
             {
-                _staticRecorder.StartPngSequence(_staticCamera, CreatePngSequenceSettings(Path.Combine(directory, $"{baseName}_StaticCamera_Frames"), width, height, antiAliasingSamples, 0.5), _staticPreparedTarget);
+                _staticRecorder.StartPngSequence(_staticCamera, CreateImageSequenceSettings(Path.Combine(directory, $"{baseName}_StaticCamera_Frames"), width, height, antiAliasingSamples, 0.5), _staticPreparedTarget);
             }
 
             while (!_captureStarted)
@@ -361,7 +364,10 @@ namespace UnityRuntimeCameraRecorder.Example
 
             if (!_stopAfterDuration)
             {
-                while (IsCapturing && !_measurementEnded) yield return null;
+                while (IsCapturing && !_measurementEnded)
+                {
+                    yield return null;
+                }
                 yield break;
             }
             yield return new WaitForSecondsRealtime(CaptureDurationSeconds);
@@ -398,7 +404,10 @@ namespace UnityRuntimeCameraRecorder.Example
 
             if (!_stopAfterDuration)
             {
-                while (IsCapturing && !_measurementEnded) yield return null;
+                while (IsCapturing && !_measurementEnded)
+                {
+                    yield return null;
+                }
                 yield break;
             }
             yield return new WaitForSecondsRealtime(CaptureDurationSeconds);
@@ -501,9 +510,9 @@ namespace UnityRuntimeCameraRecorder.Example
         }
 
         // Creates a one-image-per-second PNG sequence matching its associated video output.
-        private static PngSequenceSettings CreatePngSequenceSettings(string outputDirectory, int width, int height, int antiAliasingSamples, double initialDelaySeconds)
+        private static ImageSequenceSettings CreateImageSequenceSettings(string outputDirectory, int width, int height, int antiAliasingSamples, double initialDelaySeconds)
         {
-            return new PngSequenceSettings
+            return new ImageSequenceSettings
             {
                 OutputDirectory = outputDirectory,
                 FileNamePrefix = "frame_",

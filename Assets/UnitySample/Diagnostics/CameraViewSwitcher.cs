@@ -299,7 +299,10 @@ namespace UnityRuntimeCameraRecorder.Example
                 RecordingQuality.name = "RecordingQuality";
                 RecordingQuality.GetComponent<RectTransform>().anchoredPosition = new Vector2(-16, 328);
             }
-            if (RecordingQuality == null) return;
+            if (RecordingQuality == null)
+            {
+                return;
+            }
             // A cloned dropdown retains authored callbacks; quality must have its own callbacks.
             RecordingQuality.onValueChanged = new Dropdown.DropdownEvent();
             RecordingQuality.ClearOptions();
@@ -542,7 +545,10 @@ namespace UnityRuntimeCameraRecorder.Example
                 OutputResolution.interactable = !busy;
             }
 
-            if (RecordingQuality != null) RecordingQuality.interactable = !busy;
+            if (RecordingQuality != null)
+            {
+                RecordingQuality.interactable = !busy;
+            }
             if (VideoCodec != null)
             {
                 VideoCodec.interactable = !busy;

@@ -148,9 +148,20 @@ namespace UnityRuntimeCameraRecorder.Example
         {
             if (_captureStarted)
             {
-                if (renderedCamera == _camera) _renderedFramesSinceCapture++;
-                if (renderedCamera == _staticCamera) _staticRenderedFramesSinceCapture++;
-                if (_screenCamera != null && renderedCamera == _screenCamera) _screenRenderedFramesSinceCapture++;
+                if (renderedCamera == _camera)
+                {
+                    _renderedFramesSinceCapture++;
+                }
+
+                if (renderedCamera == _staticCamera)
+                {
+                    _staticRenderedFramesSinceCapture++;
+                }
+
+                if (_screenCamera != null && renderedCamera == _screenCamera)
+                {
+                    _screenRenderedFramesSinceCapture++;
+                }
             }
 
             long timestamp = System.Diagnostics.Stopwatch.GetTimestamp();

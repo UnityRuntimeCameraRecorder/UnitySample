@@ -30,7 +30,7 @@ namespace UnityRuntimeCameraRecorder.Example
             string directory = Path.Combine(root, $"JPG_{source.name}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
             int width = source.targetTexture != null ? source.targetTexture.width : Screen.width;
             int height = source.targetTexture != null ? source.targetTexture.height : Screen.height;
-            var settings = new PngSequenceSettings
+            var settings = new ImageSequenceSettings
             {
                 OutputDirectory = directory,
                 FileNamePrefix = "frame_",

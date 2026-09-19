@@ -17,9 +17,14 @@ namespace UnityRuntimeCameraRecorder.Example
             var controls = Object.FindFirstObjectByType<CameraViewSwitcher>();
             var canvas = controls.transform.Find("ApplicationCanvas");
             if (controls.RecordingQuality == null)
+            {
                 controls.RecordingQuality = CreateDropdown(canvas, "RecordingQuality", new Vector2(1, 0), new Vector2(-16, 328), new[] { "Quality: Low", "Quality: Medium", "Quality: High" }, 2, controls.SetRecordingQuality);
+            }
             var manualPreset = canvas.Find("EncodingPreset");
-            if (manualPreset != null) Object.DestroyImmediate(manualPreset.gameObject);
+            if (manualPreset != null)
+            {
+                Object.DestroyImmediate(manualPreset.gameObject);
+            }
             controls.RecordingQuality.GetComponent<RectTransform>().anchoredPosition = new Vector2(-16, 328);
             UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
             UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
