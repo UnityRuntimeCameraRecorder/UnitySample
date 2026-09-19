@@ -22,7 +22,7 @@ bash ./build.sh
 
 The script builds for the current OS into `Builds/Windows`, `Builds/Linux` or `Builds/macOS`; logs go to `build.log`. It uses the included plugin DLLs. Linux/macOS players support preview, not the current NVIDIA video backend; they have not been tested locally.
 
-On Windows, build and package the Release player with MSBuild:
+On Windows, clean, build and package the Release player with MSBuild:
 
 ```bash
 dotnet msbuild Assembly-CSharp.csproj -t:package

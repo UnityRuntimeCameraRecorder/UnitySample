@@ -8,7 +8,7 @@
 
   <Target Name="Package">
     <Error Condition="'$(OS)' != 'Windows_NT'" Text="The UnitySample package target currently supports Windows only." />
-    <Exec WorkingDirectory="$(MSBuildThisFileDirectory)" Command="bash ./build.sh" />
+    <Exec WorkingDirectory="$(MSBuildThisFileDirectory)" Command="bash ./build.sh clean" />
     <Error Condition="!Exists('$(UnityPlayerDirectory)\UnitySample.exe')" Text="The Unity Windows player was not produced." />
 
     <RemoveDir Directories="$(UnityPackageStagingDirectory)" />
