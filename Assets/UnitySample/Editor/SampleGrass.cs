@@ -5,7 +5,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Builds the sample's wind-animated grass.
     internal static class SampleGrass

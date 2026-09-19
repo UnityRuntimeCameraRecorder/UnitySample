@@ -529,7 +529,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: SetOutputResolution
         m_Mode: 0
@@ -656,7 +656,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: SetRenderResolution
         m_Mode: 0
@@ -792,7 +792,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: ToggleRecording
         m_Mode: 0
@@ -1165,7 +1165,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: SetVideoCodec
         m_Mode: 0
@@ -1300,7 +1300,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: SelectScreenCamera
         m_Mode: 0
@@ -1996,7 +1996,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: SelectCamera2
         m_Mode: 0
@@ -3463,7 +3463,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: SetFullscreen
         m_Mode: 0
@@ -4557,7 +4557,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: SetVSync
         m_Mode: 0
@@ -4913,7 +4913,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: SetRecordingQuality
         m_Mode: 0
@@ -10330,7 +10330,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: SetAntiAliasing
         m_Mode: 0
@@ -10624,7 +10624,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: SelectCamera1
         m_Mode: 0
@@ -12447,7 +12447,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: Quit
         m_Mode: 0
@@ -17907,7 +17907,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1417648720}
-        m_TargetAssemblyTypeName: UnityMediaRecorder.Example.CameraViewSwitcher,
+        m_TargetAssemblyTypeName: UnityRuntimeCameraRecorder.Example.CameraViewSwitcher,
           Assembly-CSharp
         m_MethodName: SetOutputFrameRate
         m_Mode: 0

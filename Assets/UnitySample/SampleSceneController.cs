@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Connects saved scene objects without constructing any scenery at runtime.
     public sealed class SampleSceneController : MonoBehaviour

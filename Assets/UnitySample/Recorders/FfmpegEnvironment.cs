@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Reads the sample's external FFmpeg executable exclusively from the process environment.
     internal static class FfmpegEnvironment

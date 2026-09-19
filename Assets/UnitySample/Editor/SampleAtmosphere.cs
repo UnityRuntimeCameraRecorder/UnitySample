@@ -5,7 +5,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Builds the sample's airborne particles and humidity mist.
     internal static class SampleAtmosphere

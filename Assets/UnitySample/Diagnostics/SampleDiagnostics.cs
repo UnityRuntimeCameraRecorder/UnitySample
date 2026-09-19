@@ -5,7 +5,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Owns diagnostic overlays and per-camera render measurements.
     public sealed class SampleDiagnostics : MonoBehaviour

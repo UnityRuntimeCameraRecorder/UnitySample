@@ -19,7 +19,7 @@ Contrôles automatiques : télémétrie sans erreur, nombre d’images soumises 
 | 1920×1080 | 60 | Low | 27 | 254 | 0 | 11.33 | 21.25 | 7.3 |
 | 1920×1080 | 60 | Medium | 23 | 254 | 0 | 18.32 | 34.47 | 3.0 |
 
-Les tests du calcul de qualité couvrent également 720p, 1440p, 3440×1440, portrait et résolution personnalisée, ainsi que les dimensions impaires/nulles, FPS nul et enum inconnu. Le transport teste explicitement une arrivée des images en ordre de décodage 0/3/1/2 et vérifie PTS, DTS, alignement TS et conservation du payload. Commande : `dotnet run --project UnityMediaRecorder/Tests/QualityProfileTests.csproj -c Release` depuis le dossier parent des projets.
+Les tests du calcul de qualité couvrent également 720p, 1440p, 3440×1440, portrait et résolution personnalisée, ainsi que les dimensions impaires/nulles, FPS nul et enum inconnu. Le transport teste explicitement une arrivée des images en ordre de décodage 0/3/1/2 et vérifie PTS, DTS, alignement TS et conservation du payload. Commande : `dotnet run --project UnityRuntimeCameraRecorder/Tests/QualityProfileTests.csproj -c Release` depuis le dossier parent des projets.
 
 Un premier enregistrement de 13 s vérifie les passages Camera 1 / Camera 2 / Screen et le retour à Camera 1. La vue Screen a été inspectée visuellement et contient l’UI à l’endroit ; le fichier se décode sans erreur. Il a révélé un besoin d’événement EOS dédié, corrigé avant les tests du tableau.
 

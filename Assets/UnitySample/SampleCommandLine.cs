@@ -5,7 +5,7 @@ using System.Globalization;
 using System.IO;
 using UnityEngine;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Applies optional startup switches to the same controls used by the Canvas.
     public sealed class SampleCommandLine : MonoBehaviour

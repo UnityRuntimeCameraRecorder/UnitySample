@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Draws diagnostics after scene post-processing without producing a separate recording.
     [RequireComponent(typeof(Camera))]

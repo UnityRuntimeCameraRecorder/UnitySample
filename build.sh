@@ -77,7 +77,7 @@ fi
 
 # Check current plugin dependencies until versioned NuGet packages are published.
 plugins_directory="$project_directory/Assets/UnitySample/Plugins"
-for library in UnityMediaRecorder.dll FFmpegMediaWriter.dll; do
+for library in UnityRuntimeCameraRecorder.dll FFmpegMediaWriter.dll; do
     [[ -s "$plugins_directory/$library" ]] || fail "Missing plugin: $library. NuGet package preparation is not available yet."
 done
 if [[ "$platform" == Windows ]]; then

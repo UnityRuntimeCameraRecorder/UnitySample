@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Applies temporally reprojected smoothing and motion-vector blur to the example camera.
     [RequireComponent(typeof(Camera))]

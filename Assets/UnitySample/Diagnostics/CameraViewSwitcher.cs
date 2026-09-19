@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Connects editable Canvas controls to preview selection and recording sessions.
     public sealed class CameraViewSwitcher : MonoBehaviour
@@ -201,7 +201,7 @@ namespace UnityMediaRecorder.Example
             int width = option == 0 ? 1920 : 3840;
             int height = option == 0 ? 1080 : 2160;
 #if UNITY_EDITOR
-            System.Type editor = System.Type.GetType("UnityMediaRecorder.Example.SampleGameViewResolution, Assembly-CSharp-Editor");
+            System.Type editor = System.Type.GetType("UnityRuntimeCameraRecorder.Example.SampleGameViewResolution, Assembly-CSharp-Editor");
             editor?.GetMethod("Apply").Invoke(null, new object[] { width, height });
 #else
             Screen.SetResolution(width, height, Fullscreen != null && Fullscreen.isOn ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed);

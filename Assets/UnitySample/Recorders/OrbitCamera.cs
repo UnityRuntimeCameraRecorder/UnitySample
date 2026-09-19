@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Controls the sample camera's two eased half-turns independently of recording.
     [RequireComponent(typeof(Camera))]

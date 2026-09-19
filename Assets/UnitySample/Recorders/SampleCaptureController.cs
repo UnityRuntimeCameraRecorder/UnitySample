@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Coordinates capture sessions without constructing scenery or overlays.
     public sealed class SampleCaptureController : MonoBehaviour
@@ -68,7 +68,7 @@ namespace UnityMediaRecorder.Example
         private bool _recordFixed = true;
         private bool _recordScreen = true;
         private bool _singleVideoOutput;
-        private UnityMediaRecorder _screenRecorder;
+        private UnityRuntimeCameraRecorder _screenRecorder;
         private int _expectedRecorderCount = 2;
         private RenderTexture _previousMainTarget;
         private RenderTexture _previousOverlayTarget;
@@ -152,9 +152,9 @@ namespace UnityMediaRecorder.Example
         }
 
         // Creates a recorder and subscribes to its session lifecycle.
-        private UnityMediaRecorder CreateRecorder()
+        private UnityRuntimeCameraRecorder CreateRecorder()
         {
-            var recorder = gameObject.AddComponent<UnityMediaRecorder>();
+            var recorder = gameObject.AddComponent<UnityRuntimeCameraRecorder>();
             recorder.CaptureStarted += HandleCaptureStarted;
             recorder.FinalizationStarted += HandleFinalizationStarted;
             recorder.RecordingCompleted += HandleRecordingCompleted;
@@ -261,7 +261,7 @@ namespace UnityMediaRecorder.Example
         }
 
         // Disconnects one recorder without depending on component destruction order.
-        private void DisconnectRecorder(UnityMediaRecorder recorder)
+        private void DisconnectRecorder(UnityRuntimeCameraRecorder recorder)
         {
             if (recorder == null)
             {
@@ -276,8 +276,8 @@ namespace UnityMediaRecorder.Example
 
         private RenderTexture _preparedTarget;
         private RenderTexture _staticPreparedTarget;
-        private UnityMediaRecorder _recorder;
-        private UnityMediaRecorder _staticRecorder;
+        private UnityRuntimeCameraRecorder _recorder;
+        private UnityRuntimeCameraRecorder _staticRecorder;
         private bool _captureStarted;
         private int _startedRecorderCount;
         private int _completedRecorderCount;

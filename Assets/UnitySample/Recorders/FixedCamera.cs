@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Moves the sample's second view independently of recording.
     [RequireComponent(typeof(Camera))]

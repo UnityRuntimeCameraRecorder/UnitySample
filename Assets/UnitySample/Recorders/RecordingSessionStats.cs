@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityMediaRecorder.Example
+namespace UnityRuntimeCameraRecorder.Example
 {
     // Stores session settings and render measurements, not encoded-video frame counts.
     [Serializable]
