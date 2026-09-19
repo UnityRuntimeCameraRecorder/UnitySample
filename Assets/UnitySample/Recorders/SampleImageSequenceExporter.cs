@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityRuntimeCameraRecorder.Example
 {
     // Exports a short high-quality JPEG sequence from one sample camera.
-    public sealed class SamplePngExporter : MonoBehaviour
+    public sealed class SampleImageSequenceExporter : MonoBehaviour
     {
         public bool IsExporting { get; private set; }
 
@@ -45,12 +45,12 @@ namespace UnityRuntimeCameraRecorder.Example
                 JpegQuality = 95
             };
 
-            recorder.StartPngSequence(source, settings);
-            while (recorder.CapturedPngFrameCount < framesPerSecond)
+            recorder.StartImageSequence(source, settings);
+            while (recorder.CapturedImageFrameCount < framesPerSecond)
             {
                 yield return null;
             }
-            recorder.StopPngSequence();
+            recorder.StopImageSequence();
             Destroy(recorder);
             IsExporting = false;
             Debug.Log($"JPEG export completed: {directory}");

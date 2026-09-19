@@ -37,6 +37,15 @@ done
 project_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 [[ -f "$project_directory/ProjectSettings/ProjectVersion.txt" ]] || fail 'Unity project settings were not found next to this script.'
 
+# Synchronize recorder-owned Unity assets without maintaining sample copies.
+recorder_directory="$(cd -- "$project_directory/../UnityRuntimeCameraRecorder" && pwd -P)"
+recorder_shader_source="$recorder_directory/Resources/UnityRuntimeCameraRecorderCrossFade.shader"
+recorder_shader_meta_source="$recorder_shader_source.meta"
+recorder_resources_directory="$project_directory/Assets/UnityRuntimeCameraRecorder/Resources"
+[[ -f "$recorder_shader_source" && -f "$recorder_shader_meta_source" ]] || fail 'The recorder crossfade shader package asset is missing.'
+mkdir -p -- "$recorder_resources_directory"
+cp -- "$recorder_shader_source" "$recorder_shader_meta_source" "$recorder_resources_directory/"
+
 case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*)
         platform=Windows

@@ -349,12 +349,12 @@ namespace UnityRuntimeCameraRecorder.Example
 
             if (_recordMain)
             {
-                _recorder.StartPngSequence(_overlayCamera, CreateImageSequenceSettings(Path.Combine(directory, $"{baseName}_MainCamera_Frames"), width, height, antiAliasingSamples, 0.0), _preparedTarget);
+                _recorder.StartImageSequence(_overlayCamera, CreateImageSequenceSettings(Path.Combine(directory, $"{baseName}_MainCamera_Frames"), width, height, antiAliasingSamples, 0.0), _preparedTarget);
             }
 
             if (_recordFixed)
             {
-                _staticRecorder.StartPngSequence(_staticCamera, CreateImageSequenceSettings(Path.Combine(directory, $"{baseName}_StaticCamera_Frames"), width, height, antiAliasingSamples, 0.5), _staticPreparedTarget);
+                _staticRecorder.StartImageSequence(_staticCamera, CreateImageSequenceSettings(Path.Combine(directory, $"{baseName}_StaticCamera_Frames"), width, height, antiAliasingSamples, 0.5), _staticPreparedTarget);
             }
 
             while (!_captureStarted)
@@ -371,8 +371,8 @@ namespace UnityRuntimeCameraRecorder.Example
                 yield break;
             }
             yield return new WaitForSecondsRealtime(CaptureDurationSeconds);
-            _recorder.StopPngSequence();
-            _staticRecorder.StopPngSequence();
+            _recorder.StopImageSequence();
+            _staticRecorder.StopImageSequence();
         }
 
         // Runs one controlled render or NVENC benchmark selected through the environment.
@@ -509,7 +509,7 @@ namespace UnityRuntimeCameraRecorder.Example
             };
         }
 
-        // Creates a one-image-per-second PNG sequence matching its associated video output.
+        // Creates a one-image-per-second image sequence matching its associated video output.
         private static ImageSequenceSettings CreateImageSequenceSettings(string outputDirectory, int width, int height, int antiAliasingSamples, double initialDelaySeconds)
         {
             return new ImageSequenceSettings

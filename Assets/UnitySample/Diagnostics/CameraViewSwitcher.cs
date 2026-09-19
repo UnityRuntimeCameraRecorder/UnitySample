@@ -25,13 +25,13 @@ namespace UnityRuntimeCameraRecorder.Example
         private RenderTexture _originalFixedPreview, _fixedPreview;
         private int _previousAntiAliasing;
         public Button RecordButton;
-        public Button ExportPngButton;
+        public Button ExportImageButton;
         public Text RecordButtonLabel, FullscreenButtonLabel;
         private int _selectedCamera = 2;
         private Button[] _cameraSelectionButtons;
         private bool _quitAfterRecording;
         private Text _recordingStatus;
-        private SamplePngExporter _pngExporter;
+        private SampleImageSequenceExporter _imageSequenceExporter;
         // Applies the authored VSync choice after scene initialization.
         public void Initialize()
         {
@@ -156,29 +156,29 @@ namespace UnityRuntimeCameraRecorder.Example
         // Creates the one-second PNG export button when the scene has not authored it.
         private void InitializePngExportButton(Transform canvas)
         {
-            _pngExporter = GetComponent<SamplePngExporter>() ?? gameObject.AddComponent<SamplePngExporter>();
-            ExportPngButton = ExportPngButton != null ? ExportPngButton : canvas?.Find("ExportPngButton")?.GetComponent<Button>();
-            if (ExportPngButton == null && RecordButton != null && canvas != null)
+            _imageSequenceExporter = GetComponent<SampleImageSequenceExporter>() ?? gameObject.AddComponent<SampleImageSequenceExporter>();
+            ExportImageButton = ExportImageButton != null ? ExportImageButton : canvas?.Find("ExportImageButton")?.GetComponent<Button>();
+            if (ExportImageButton == null && RecordButton != null && canvas != null)
             {
                 ShiftRightControlsForPngExport();
-                ExportPngButton = Instantiate(RecordButton, canvas);
-                ExportPngButton.name = "ExportPngButton";
-                RectTransform rect = ExportPngButton.GetComponent<RectTransform>();
+                ExportImageButton = Instantiate(RecordButton, canvas);
+                ExportImageButton.name = "ExportImageButton";
+                RectTransform rect = ExportImageButton.GetComponent<RectTransform>();
                 rect.anchorMin = rect.anchorMax = new Vector2(1, 0);
                 rect.pivot = new Vector2(1, 0);
                 rect.anchoredPosition = new Vector2(-16, 16);
                 rect.sizeDelta = new Vector2(248, 56);
             }
 
-            if (ExportPngButton == null)
+            if (ExportImageButton == null)
             {
                 throw new MissingReferenceException("The PNG export button could not be created.");
             }
 
-            ExportPngButton.onClick = new Button.ButtonClickedEvent();
-            ExportPngButton.onClick.AddListener(ExportSelectedPngSecond);
-            ExportPngButton.GetComponentInChildren<Text>().text = "Export JPG";
-            ExportPngButton.transform.SetAsLastSibling();
+            ExportImageButton.onClick = new Button.ButtonClickedEvent();
+            ExportImageButton.onClick.AddListener(ExportSelectedImageSecond);
+            ExportImageButton.GetComponentInChildren<Text>().text = "Export JPG";
+            ExportImageButton.transform.SetAsLastSibling();
         }
 
         // Moves the complete right control column up to reserve one button row.
@@ -198,12 +198,12 @@ namespace UnityRuntimeCameraRecorder.Example
         }
 
         // Exports one second from the camera currently shown in the preview.
-        public void ExportSelectedPngSecond()
+        public void ExportSelectedImageSecond()
         {
             Camera selected = _selectedCamera == 0 ? Camera1 : _selectedCamera == 1 ? Camera2 : ScreenCamera;
             int framesPerSecond = OutputFrameRate != null && OutputFrameRate.value == 0 ? 30 : 60;
             int samples = new[] { 1, 2, 4, 8 }[Mathf.Clamp(AntiAliasing != null ? AntiAliasing.value : 0, 0, 3)];
-            _pngExporter.ExportOneSecond(selected, framesPerSecond, samples);
+            _imageSequenceExporter.ExportOneSecond(selected, framesPerSecond, samples);
         }
 
         // Adds consistent hover feedback and finds the three preview-selection buttons.
@@ -591,9 +591,9 @@ namespace UnityRuntimeCameraRecorder.Example
                 RecordButtonLabel.text = busy ? "Stop recording" : "Record";
             }
 
-            if (ExportPngButton != null)
+            if (ExportImageButton != null)
             {
-                ExportPngButton.interactable = !busy && (_pngExporter == null || !_pngExporter.IsExporting);
+                ExportImageButton.interactable = !busy && (_imageSequenceExporter == null || !_imageSequenceExporter.IsExporting);
             }
 
             if (FullscreenButtonLabel != null)

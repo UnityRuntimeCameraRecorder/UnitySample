@@ -87,7 +87,7 @@ namespace UnityRuntimeCameraRecorder.Example
 
             string[] names =
             {
-                "ExportPngButton",
+                "ExportImageButton",
                 "RecordButton",
                 "RecordScreen",
                 "RecordCamera2",
@@ -241,7 +241,7 @@ namespace UnityRuntimeCameraRecorder.Example
             controls.RecordCamera2 = Checkbox(root.transform, "RecordCamera2", "Record camera 2", 128, true);
             controls.RecordScreen = Checkbox(root.transform, "RecordScreen", "Record screen", 84, true);
             controls.RecordButton = Button(root.transform, "RecordButton", "Record", new Vector2(680, 84), false, controls.ToggleRecording);
-            controls.ExportPngButton = Button(root.transform, "ExportPngButton", "Export JPG", new Vector2(680, 16), false, controls.ExportSelectedPngSecond);
+            controls.ExportImageButton = Button(root.transform, "ExportImageButton", "Export JPG", new Vector2(680, 16), false, controls.ExportSelectedImageSecond);
             controls.RecordButtonLabel = controls.RecordButton.GetComponentInChildren<Text>();
             Transform oldFullscreen = root.transform.Find("FullscreenButton");
             if (oldFullscreen != null)

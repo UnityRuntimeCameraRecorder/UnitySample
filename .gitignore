@@ -37,3 +37,7 @@ Desktop.ini
 /crash.dmp
 
 # Keep Assets (including plugin DLLs and .meta files), Packages and ProjectSettings tracked.
+
+# Recorder-owned Unity assets synchronized by build.sh.
+/Assets/UnityRuntimeCameraRecorder/
+/Assets/UnityRuntimeCameraRecorder.meta
