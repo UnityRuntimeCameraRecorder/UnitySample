@@ -2,10 +2,6 @@
 
 An editable Unity scene demonstrating camera recording: a lit cube, wind-blown grass, particles and mist, with an orbit camera and a fixed camera.
 
-The sample plays "Iced Out" by [LSPLASH](https://soundcloud.com/lightningsplash/icedout) automatically at startup. The Unity audio asset is a lossless FLAC conversion of the AAC stream; LSPLASH allows their music in videos and livestreams.
-
-Set `CAPTURE_KEEP_INTERMEDIATE=1` before recording to keep the MKV files with lossless audio for comparison with the final encoded audio in the MP4 files.
-
 ## Run and record
 
 Video recording requires Windows x64, an NVIDIA NVENC GPU with a recent driver, and [FFmpeg](https://ffmpeg.org/download.html). Set `FFMPEG_PATH` to the absolute path of the FFmpeg `bin` directory containing `ffmpeg.exe` and `ffprobe.exe` before launching Unity or the app.
@@ -77,3 +73,7 @@ Videos and `*.stats.json` go into `output` beside the executable (project root i
 The bundled libraries are [UnityRuntimeCameraRecorder](https://github.com/UnityRuntimeCameraRecorder/UnityRuntimeCameraRecorder), [Direct3DVideoEncoder](https://github.com/UnityRuntimeCameraRecorder/Direct3DVideoEncoder) and [FFmpegMediaWriter](https://github.com/UnityRuntimeCameraRecorder/FFmpegMediaWriter).
 
 The Quality menu selects Low, Medium or High (default); H.264 is the default codec. Profile details are documented in [UnityRuntimeCameraRecorder](https://github.com/UnityRuntimeCameraRecorder/UnityRuntimeCameraRecorder#automatic-sdr-quality-profiles), and native settings in [Direct3DVideoEncoder](https://github.com/UnityRuntimeCameraRecorder/Direct3DVideoEncoder#sdr-constant-qp-quality-entry-point). HDR is not supported today. See the [specification](docs/recording-quality-presets-spec.md) and [validation results](docs/recording-quality-presets-validation.md).
+
+## Resources
+
+Sample music: ["Iced Out" by LSPLASH](https://soundcloud.com/lightningsplash/icedout), available for use in videos and livestreams.
