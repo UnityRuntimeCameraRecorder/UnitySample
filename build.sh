@@ -92,7 +92,7 @@ done
 if [[ "$platform" == Windows ]]; then
     [[ -s "$plugins_directory/x86_64/Direct3DVideoEncoder.dll" ]] || fail 'Missing Windows plugin: Direct3DVideoEncoder.dll.'
 else
-    printf '%s\n' 'Note: the current video encoder is Windows/NVIDIA only; this build can preview the scene and use the PNG capture API.'
+    printf '%s\n' 'Note: the current video encoder is Windows/NVIDIA only; this build can preview the scene and use the image-sequence capture API.'
 fi
 
 player_path="$project_directory/$player_relative_path"

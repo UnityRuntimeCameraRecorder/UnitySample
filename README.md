@@ -30,7 +30,7 @@ Install Unity **6000.0.61f1** with your platform's build support module. Put `Un
 bash ./build.sh
 ```
 
-The script builds for the current OS into `Builds/Windows`, `Builds/Linux` or `Builds/macOS`; logs go to `build.log`. It uses the included plugin DLLs. Linux/macOS players support preview, not the current NVIDIA video backend; they have not been tested locally.
+The script builds for the current OS into `Builds/Windows`, `Builds/Linux` or `Builds/macOS`; logs go to `Builds/Logs/build.log`. It uses the included plugin DLLs. Linux/macOS players support preview, not the current NVIDIA video backend; they have not been tested locally.
 
 On Windows, clean, build and package the Release player with MSBuild:
 
@@ -60,6 +60,7 @@ Switches use the same settings as the UI:
 | `--aa` | `off`, `2`, `4`, `8` |
 | `--camera` | `1`, `2`: preview only |
 | `--record` | Comma-separated `camera1,camera2,screen`; `both` or `all` also accepted |
+| `--single-output` | Combine all selected recording sources into one automatically edited MP4 |
 | `--duration` | Seconds, at least `0.1` |
 | `--quit-after-recording` | Finalize and exit; requires `--record` |
 | `--purge` | Permanently delete only sample-prefixed output files before recording |
@@ -68,11 +69,11 @@ Without `--record`, the app only previews. Keep it visible: batch/headless playe
 
 ## Output and editing
 
-Videos and `*.stats.json` go into `output` beside the executable (project root in Play mode). Statistics include Unity render FPS; output FPS is a ceiling. Edit UI positions under `Diagnostics > ApplicationCanvas` outside Play mode.
+Videos, per-video `*.stats.txt` files and session `*.stats.json` files go into `output` beside the executable (project root in Play mode). The **Export JPG** button writes one second of JPEG frames into a subdirectory. Statistics include Unity render FPS; output FPS is a ceiling. Edit UI positions under `Diagnostics > ApplicationCanvas` outside Play mode.
 
 The bundled libraries are [UnityRuntimeCameraRecorder](https://github.com/UnityRuntimeCameraRecorder/UnityRuntimeCameraRecorder), [Direct3DVideoEncoder](https://github.com/UnityRuntimeCameraRecorder/Direct3DVideoEncoder) and [FFmpegMediaWriter](https://github.com/UnityRuntimeCameraRecorder/FFmpegMediaWriter).
 
-The Quality menu selects Low, Medium or High (default); H.264 is the default codec. Profile details are documented in [UnityRuntimeCameraRecorder](https://github.com/UnityRuntimeCameraRecorder/UnityRuntimeCameraRecorder#automatic-sdr-quality-profiles), and native settings in [Direct3DVideoEncoder](https://github.com/UnityRuntimeCameraRecorder/Direct3DVideoEncoder#sdr-constant-qp-quality-entry-point). HDR is not supported today. See the [specification](docs/recording-quality-presets-spec.md) and [validation results](docs/recording-quality-presets-validation.md).
+The Quality menu selects Low, Medium or High (default); H.264 is the default codec. Profile details are documented in [UnityRuntimeCameraRecorder](https://github.com/UnityRuntimeCameraRecorder/UnityRuntimeCameraRecorder#quality-profiles), and native settings in [Direct3DVideoEncoder](https://github.com/UnityRuntimeCameraRecorder/Direct3DVideoEncoder#sdr-constant-qp-quality-entry-point). HDR is not supported today.
 
 ## Resources
 

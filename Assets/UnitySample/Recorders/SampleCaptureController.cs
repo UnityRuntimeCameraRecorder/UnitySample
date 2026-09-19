@@ -495,8 +495,6 @@ namespace UnityRuntimeCameraRecorder.Example
             {
                 FfmpegPath = _ffmpegPath,
                 TemporaryContainerPath = Path.Combine(directory, $"{baseName}.mkv.tmp"),
-                ArchivePath = Path.Combine(directory, $"{baseName}.mkv"),
-                KeepIntermediateFile = Environment.GetEnvironmentVariable("CAPTURE_KEEP_INTERMEDIATE") == "1",
                 GenerateStatistics = true,
                 OutputPath = Path.Combine(directory, $"{baseName}.mp4"),
                 Width = width,
