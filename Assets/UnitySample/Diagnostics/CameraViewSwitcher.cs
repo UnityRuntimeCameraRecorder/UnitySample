@@ -24,6 +24,7 @@ namespace UnityRuntimeCameraRecorder.Example
         public Button RecordButton;
         public Text RecordButtonLabel, FullscreenButtonLabel;
         private int _selectedCamera = 2;
+        private Button[] _cameraSelectionButtons;
         private bool _quitAfterRecording;
         private Text _recordingStatus;
         // Applies the authored VSync choice after scene initialization.
@@ -58,6 +59,7 @@ namespace UnityRuntimeCameraRecorder.Example
             }
 
             Transform canvas = transform.Find("ApplicationCanvas");
+            InitializeButtonStyles(canvas);
             _recordingStatus = canvas?.Find("RecordingStatus")?.GetComponent<Text>();
             if (_recordingStatus == null && canvas != null)
             {
@@ -97,6 +99,56 @@ namespace UnityRuntimeCameraRecorder.Example
             if (RenderResolution != null)
             {
                 SetRenderResolution(RenderResolution.value);
+            }
+
+            ApplyCameraSelectionHighlight();
+        }
+
+        // Adds consistent hover feedback and finds the three preview-selection buttons.
+        private void InitializeButtonStyles(Transform canvas)
+        {
+            if (canvas == null)
+            {
+                return;
+            }
+
+            foreach (Button button in canvas.GetComponentsInChildren<Button>(true))
+            {
+                ColorBlock colors = button.colors;
+                colors.normalColor = Color.white;
+                colors.highlightedColor = new Color(.78f, .9f, 1f, 1f);
+                colors.pressedColor = new Color(.55f, .76f, 1f, 1f);
+                colors.selectedColor = Color.white;
+                colors.colorMultiplier = 1.3f;
+                colors.fadeDuration = .08f;
+                button.colors = colors;
+            }
+
+            _cameraSelectionButtons = new[]
+            {
+                canvas.Find("Camera1Button")?.GetComponent<Button>(),
+                canvas.Find("Camera2Button")?.GetComponent<Button>(),
+                canvas.Find("ScreenCameraButton")?.GetComponent<Button>()
+            };
+        }
+
+        // Highlights only the button that controls the current live preview.
+        private void ApplyCameraSelectionHighlight()
+        {
+            if (_cameraSelectionButtons == null)
+            {
+                return;
+            }
+
+            for (int index = 0; index < _cameraSelectionButtons.Length; index++)
+            {
+                Button button = _cameraSelectionButtons[index];
+                if (button?.targetGraphic != null)
+                {
+                    button.targetGraphic.color = index == _selectedCamera
+                        ? new Color(.08f, .32f, .55f, .95f)
+                        : new Color(.08f, .1f, .15f, .9f);
+                }
             }
         }
 
@@ -443,18 +495,21 @@ namespace UnityRuntimeCameraRecorder.Example
         public void SelectCamera1()
         {
             _selectedCamera = 0;
+            ApplyCameraSelectionHighlight();
         }
 
         // Selects the fixed camera without altering recording.
         public void SelectCamera2()
         {
             _selectedCamera = 1;
+            ApplyCameraSelectionHighlight();
         }
 
         // Returns to the stationary ground-level view used for screen recordings.
         public void SelectScreenCamera()
         {
             _selectedCamera = 2;
+            ApplyCameraSelectionHighlight();
         }
 
         // Starts selected recordings or finalizes the active session.

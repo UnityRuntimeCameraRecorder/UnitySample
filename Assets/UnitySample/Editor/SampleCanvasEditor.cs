@@ -318,6 +318,14 @@ namespace UnityRuntimeCameraRecorder.Example
             image.color = new Color(.08f, .1f, .15f, .9f);
             Button button = Get<Button>(rect.gameObject);
             button.targetGraphic = image;
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(.78f, .9f, 1f, 1f);
+            colors.pressedColor = new Color(.55f, .76f, 1f, 1f);
+            colors.selectedColor = Color.white;
+            colors.colorMultiplier = 1.3f;
+            colors.fadeDuration = .08f;
+            button.colors = colors;
             if (button.onClick.GetPersistentEventCount() == 0)
             {
                 UnityEventTools.AddPersistentListener(button.onClick, action);
