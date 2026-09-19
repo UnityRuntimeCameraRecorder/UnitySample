@@ -63,9 +63,6 @@ namespace UnityMediaRecorder.Example
         private OrbitCamera _orbitCamera;
         private TemporalMotionSmoothing _mainTemporalSmoothing;
         private TemporalMotionSmoothing _staticTemporalSmoothing;
-        private bool _mainTemporalSmoothingWasEnabled;
-        private bool _staticTemporalSmoothingWasEnabled;
-        private bool _sequenceTemporalSmoothingDisabled;
         private SampleDiagnostics _diagnostics;
         private bool _recordMain = true;
         private bool _recordFixed = true;
@@ -423,7 +420,6 @@ namespace UnityMediaRecorder.Example
             AudioListener listener = _camera.GetComponent<AudioListener>();
             if (_singleVideoOutput)
             {
-                DisableSequenceTemporalSmoothing();
                 RecordingSettings settings = CreateRecordingSettings(directory, $"{baseName}_CameraSequence", width, height, frameRate, antiAliasingSamples);
                 var sources = new List<VideoSequenceSource>();
                 if (_recordMain)
@@ -472,45 +468,6 @@ namespace UnityMediaRecorder.Example
                 settings.CaptureScreen = true;
                 _screenRecorder.StartRecording(_camera, listener, settings);
             }
-        }
-
-        // Disables sample-only temporal effects that cannot use reliable motion vectors during manual camera rendering.
-        private void DisableSequenceTemporalSmoothing()
-        {
-            _mainTemporalSmoothingWasEnabled = _mainTemporalSmoothing != null && _mainTemporalSmoothing.enabled;
-            _staticTemporalSmoothingWasEnabled = _staticTemporalSmoothing != null && _staticTemporalSmoothing.enabled;
-            if (_mainTemporalSmoothing != null)
-            {
-                _mainTemporalSmoothing.enabled = false;
-            }
-
-            if (_staticTemporalSmoothing != null)
-            {
-                _staticTemporalSmoothing.enabled = false;
-            }
-
-            _sequenceTemporalSmoothingDisabled = true;
-        }
-
-        // Restores the sample-only temporal effects after the sequence recorder releases its cameras.
-        private void RestoreSequenceTemporalSmoothing()
-        {
-            if (!_sequenceTemporalSmoothingDisabled)
-            {
-                return;
-            }
-
-            if (_mainTemporalSmoothing != null)
-            {
-                _mainTemporalSmoothing.enabled = _mainTemporalSmoothingWasEnabled;
-            }
-
-            if (_staticTemporalSmoothing != null)
-            {
-                _staticTemporalSmoothing.enabled = _staticTemporalSmoothingWasEnabled;
-            }
-
-            _sequenceTemporalSmoothingDisabled = false;
         }
 
         // Creates one independent output configuration for a synchronized camera recording.
@@ -830,7 +787,6 @@ namespace UnityMediaRecorder.Example
         // Releases the camera target owned by this example after recording ends.
         private void ReleasePreparedTarget()
         {
-            RestoreSequenceTemporalSmoothing();
             if (_preparedTarget == null)
             {
                 return;

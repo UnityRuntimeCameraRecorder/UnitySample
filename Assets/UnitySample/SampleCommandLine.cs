@@ -99,6 +99,10 @@ namespace UnityMediaRecorder.Example
                 {
                     "--quit-after-recording",
                     Array.Empty<string>()
+                },
+                {
+                    "--single-output",
+                    Array.Empty<string>()
                 }
             };
             string error = null;
@@ -159,6 +163,10 @@ namespace UnityMediaRecorder.Example
             if (options.ContainsKey("--quit-after-recording") && !options.ContainsKey("--record"))
             {
                 error = "--quit-after-recording requires --record.";
+            }
+            if (options.ContainsKey("--single-output") && !options.ContainsKey("--record"))
+            {
+                error = "--single-output requires --record.";
             }
 
             if (error != null)
@@ -259,6 +267,10 @@ namespace UnityMediaRecorder.Example
             ui.RecordCamera1.isOn = sources.Contains("camera1") || record == "both" || record == "all";
             ui.RecordCamera2.isOn = sources.Contains("camera2") || record == "both" || record == "all";
             ui.RecordScreen.isOn = sources.Contains("screen") || record == "all";
+            if (options.ContainsKey("--single-output"))
+            {
+                ui.SingleVideoOutput.isOn = true;
+            }
             // Allow asynchronous display changes to settle before taking the first frame.
             yield return new WaitForSecondsRealtime(1);
             try
