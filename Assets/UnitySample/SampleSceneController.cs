@@ -17,9 +17,9 @@ namespace UnityRuntimeCameraRecorder.Example
         // Connects the authored cameras and optionally starts their capture sessions.
         private void Start()
         {
-            MediaRecorderLog.Info = Debug.Log;
-            MediaRecorderLog.Warning = Debug.LogWarning;
-            MediaRecorderLog.Error = Debug.LogException;
+            RecorderLog.Info = Debug.Log;
+            RecorderLog.Warning = Debug.LogWarning;
+            RecorderLog.Error = Debug.LogException;
             _previousVSync = QualitySettings.vSyncCount;
             _previousFrameRate = Application.targetFrameRate;
             QualitySettings.vSyncCount = 1;

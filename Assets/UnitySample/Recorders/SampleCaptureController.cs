@@ -488,7 +488,6 @@ namespace UnityRuntimeCameraRecorder.Example
                 TemporaryContainerPath = Path.Combine(directory, $"{baseName}.mkv.tmp"),
                 ArchivePath = Path.Combine(directory, $"{baseName}.mkv"),
                 KeepIntermediateFile = Environment.GetEnvironmentVariable("CAPTURE_KEEP_INTERMEDIATE") == "1",
-                GeneratePreviewImage = false,
                 GenerateStatistics = true,
                 OutputPath = Path.Combine(directory, $"{baseName}.mp4"),
                 Width = width,
