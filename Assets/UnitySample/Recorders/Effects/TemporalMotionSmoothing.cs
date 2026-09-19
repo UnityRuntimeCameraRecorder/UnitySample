@@ -8,9 +8,16 @@ namespace UnityRuntimeCameraRecorder.Example
     {
         [SerializeField, Range(0f, 1f)] private float HistoryWeight = 0.08f;
         [SerializeField, Range(0f, 1f)] private float MotionBlurStrength = 0.35f;
+        private bool _motionBlurEnabled = true;
         private Material _material;
         private RenderTexture _history;
         private bool _historyValid;
+
+        // Enables or disables only the motion-vector blur samples.
+        public void SetMotionBlurEnabled(bool enabled)
+        {
+            _motionBlurEnabled = enabled;
+        }
 
         // Enables the depth and motion-vector textures required by temporal reprojection.
         private void OnEnable()
@@ -66,7 +73,7 @@ namespace UnityRuntimeCameraRecorder.Example
 
             _material.SetTexture("_HistoryTex", _history);
             _material.SetFloat("_HistoryWeight", HistoryWeight);
-            _material.SetFloat("_MotionBlurStrength", MotionBlurStrength);
+            _material.SetFloat("_MotionBlurStrength", _motionBlurEnabled ? MotionBlurStrength : 0f);
             RenderTexture resolved = RenderTexture.GetTemporary(source.descriptor);
             Graphics.Blit(source, resolved, _material);
             Graphics.Blit(resolved, _history);

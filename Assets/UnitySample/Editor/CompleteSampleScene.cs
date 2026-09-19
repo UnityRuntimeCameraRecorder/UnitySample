@@ -95,8 +95,9 @@ namespace UnityRuntimeCameraRecorder.Example
             light.intensity = 1.2f;
             light.shadows = LightShadows.Soft;
             light.shadowStrength = 0.75f;
-            light.shadowBias = 0.035f;
-            light.shadowNormalBias = 0.25f;
+            light.shadowCustomResolution = 4096;
+            light.shadowBias = 0.02f;
+            light.shadowNormalBias = 0.15f;
             light.transform.rotation = Quaternion.Euler(45f, -30f, 0f);
             RenderSettings.ambientLight = new Color(0.25f, 0.25f, 0.3f);
             RenderSettings.fog = true;

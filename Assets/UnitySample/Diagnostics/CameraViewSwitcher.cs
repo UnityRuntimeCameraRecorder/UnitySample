@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,19 +15,23 @@ namespace UnityRuntimeCameraRecorder.Example
         public Toggle SingleVideoOutput;
         public Toggle VSync;
         public Toggle Fullscreen;
+        public Toggle MotionBlur;
         public Dropdown AntiAliasing;
         public Dropdown OutputFrameRate, OutputResolution;
         public Dropdown RenderResolution;
         public Dropdown VideoCodec;
         public Dropdown RecordingQuality;
+        private RenderTexture _originalMainPreview, _mainPreview;
         private RenderTexture _originalFixedPreview, _fixedPreview;
         private int _previousAntiAliasing;
         public Button RecordButton;
+        public Button ExportPngButton;
         public Text RecordButtonLabel, FullscreenButtonLabel;
         private int _selectedCamera = 2;
         private Button[] _cameraSelectionButtons;
         private bool _quitAfterRecording;
         private Text _recordingStatus;
+        private SamplePngExporter _pngExporter;
         // Applies the authored VSync choice after scene initialization.
         public void Initialize()
         {
@@ -60,6 +65,8 @@ namespace UnityRuntimeCameraRecorder.Example
 
             Transform canvas = transform.Find("ApplicationCanvas");
             InitializeButtonStyles(canvas);
+            InitializeMotionBlurToggle(canvas);
+            InitializePngExportButton(canvas);
             _recordingStatus = canvas?.Find("RecordingStatus")?.GetComponent<Text>();
             if (_recordingStatus == null && canvas != null)
             {
@@ -102,6 +109,101 @@ namespace UnityRuntimeCameraRecorder.Example
             }
 
             ApplyCameraSelectionHighlight();
+        }
+
+        // Creates a dedicated non-overlapping motion blur toggle when needed.
+        private void InitializeMotionBlurToggle(Transform canvas)
+        {
+            MotionBlur = MotionBlur != null ? MotionBlur : canvas?.Find("MotionBlur")?.GetComponent<Toggle>();
+            if (MotionBlur == null && VSync != null && canvas != null)
+            {
+                MotionBlur = Instantiate(VSync, canvas);
+                MotionBlur.name = "MotionBlur";
+                MotionBlur.GetComponent<RectTransform>().anchoredPosition = new Vector2(16, 444);
+            }
+
+            if (MotionBlur == null)
+            {
+                throw new MissingReferenceException("The motion blur toggle could not be created.");
+            }
+
+            MotionBlur.group = null;
+            MotionBlur.SetIsOnWithoutNotify(true);
+            MotionBlur.onValueChanged = new Toggle.ToggleEvent();
+            MotionBlur.onValueChanged.AddListener(SetMotionBlur);
+            MotionBlur.transform.Find("Label").GetComponent<Text>().text = "Motion blur";
+            MotionBlur.transform.SetAsLastSibling();
+            SetMotionBlur(true);
+        }
+
+        // Enables motion blur on both sample scene cameras.
+        public void SetMotionBlur(bool enabled)
+        {
+            SetCameraMotionBlur(Camera1, enabled);
+            SetCameraMotionBlur(Camera2, enabled);
+        }
+
+        // Applies motion blur state when a camera owns the sample effect.
+        private static void SetCameraMotionBlur(Camera cameraComponent, bool enabled)
+        {
+            TemporalMotionSmoothing smoothing = cameraComponent != null ? cameraComponent.GetComponent<TemporalMotionSmoothing>() : null;
+            if (smoothing != null)
+            {
+                smoothing.SetMotionBlurEnabled(enabled);
+            }
+        }
+
+        // Creates the one-second PNG export button when the scene has not authored it.
+        private void InitializePngExportButton(Transform canvas)
+        {
+            _pngExporter = GetComponent<SamplePngExporter>() ?? gameObject.AddComponent<SamplePngExporter>();
+            ExportPngButton = ExportPngButton != null ? ExportPngButton : canvas?.Find("ExportPngButton")?.GetComponent<Button>();
+            if (ExportPngButton == null && RecordButton != null && canvas != null)
+            {
+                ShiftRightControlsForPngExport();
+                ExportPngButton = Instantiate(RecordButton, canvas);
+                ExportPngButton.name = "ExportPngButton";
+                RectTransform rect = ExportPngButton.GetComponent<RectTransform>();
+                rect.anchorMin = rect.anchorMax = new Vector2(1, 0);
+                rect.pivot = new Vector2(1, 0);
+                rect.anchoredPosition = new Vector2(-16, 16);
+                rect.sizeDelta = new Vector2(248, 56);
+            }
+
+            if (ExportPngButton == null)
+            {
+                throw new MissingReferenceException("The PNG export button could not be created.");
+            }
+
+            ExportPngButton.onClick = new Button.ButtonClickedEvent();
+            ExportPngButton.onClick.AddListener(ExportSelectedPngSecond);
+            ExportPngButton.GetComponentInChildren<Text>().text = "Export JPG";
+            ExportPngButton.transform.SetAsLastSibling();
+        }
+
+        // Moves the complete right control column up to reserve one button row.
+        private void ShiftRightControlsForPngExport()
+        {
+            foreach (Component control in new Component[]
+            {
+                VideoCodec, RecordingQuality, OutputResolution, OutputFrameRate,
+                RecordCamera1, RecordCamera2, RecordScreen, RecordButton
+            })
+            {
+                if (control != null)
+                {
+                    control.GetComponent<RectTransform>().anchoredPosition += new Vector2(0, 68);
+                }
+            }
+        }
+
+        // Exports one second from the camera currently shown in the preview.
+        public void ExportSelectedPngSecond()
+        {
+            Camera selected = _selectedCamera == 0 ? Camera1 : _selectedCamera == 1 ? Camera2 : ScreenCamera;
+            int framesPerSecond = OutputFrameRate != null && OutputFrameRate.value == 0 ? 30 : 60;
+            int samples = new[] { 1, 2, 4, 8 }[Mathf.Clamp(AntiAliasing != null ? AntiAliasing.value : 0, 0, 3)];
+            _pngExporter.ExportOneSecond(selected, framesPerSecond, samples);
         }
 
         // Adds consistent hover feedback and finds the three preview-selection buttons.
@@ -263,12 +365,19 @@ namespace UnityRuntimeCameraRecorder.Example
                 Captures.SetRenderResolution(width, height);
             }
 
-            if (_fixedPreview != null)
+            int samples = Mathf.Max(1, QualitySettings.antiAliasing);
+            RebuildPreviewTargets(width, height, samples);
+            StartCoroutine(RefreshRenderResolutionCaption());
+        }
+
+        // Rebuilds the dropdown caption after Unity applies the new display scale.
+        private IEnumerator RefreshRenderResolutionCaption()
+        {
+            yield return null;
+            if (RenderResolution?.captionText != null)
             {
-                _fixedPreview.Release();
-                _fixedPreview.width = width;
-                _fixedPreview.height = height;
-                _fixedPreview.Create();
+                RenderResolution.captionText.SetAllDirty();
+                Canvas.ForceUpdateCanvases();
             }
         }
 
@@ -312,65 +421,67 @@ namespace UnityRuntimeCameraRecorder.Example
                 diagnostics.ConfigureCapture(Camera1.pixelWidth, Camera1.pixelHeight, samples, "preview");
             }
 
-            if (Camera1 != null)
-            {
-                Camera1.allowMSAA = samples > 1;
-            }
+            int width = RenderResolution == null || RenderResolution.value == 0 ? 1920 : 3840;
+            int height = RenderResolution == null || RenderResolution.value == 0 ? 1080 : 2160;
+            RebuildPreviewTargets(width, height, samples);
+        }
 
-            if (Camera2 == null)
+        // Recreates both camera preview targets with identical quality settings.
+        private void RebuildPreviewTargets(int width, int height, int samples)
+        {
+            RebuildPreviewTarget(Camera1, ref _originalMainPreview, ref _mainPreview, width, height, samples, "MainPreview");
+            RebuildPreviewTarget(Camera2, ref _originalFixedPreview, ref _fixedPreview, width, height, samples, "FixedPreview");
+        }
+
+        // Recreates one runtime preview texture from its authored descriptor.
+        private static void RebuildPreviewTarget(Camera cameraComponent, ref RenderTexture original, ref RenderTexture runtime, int width, int height, int samples, string name)
+        {
+            if (cameraComponent == null || (cameraComponent.targetTexture == null && original == null))
             {
                 return;
             }
 
-            Camera2.allowMSAA = samples > 1;
-            if (_originalFixedPreview == null)
-            {
-                _originalFixedPreview = Camera2.targetTexture;
-            }
+            original = original != null ? original : cameraComponent.targetTexture;
+            cameraComponent.targetTexture = original;
+            ReleasePreviewTarget(ref runtime);
+            RenderTextureDescriptor descriptor = original.descriptor;
+            descriptor.width = width;
+            descriptor.height = height;
+            descriptor.msaaSamples = samples;
+            runtime = new RenderTexture(descriptor) { name = name };
+            runtime.Create();
+            cameraComponent.allowMSAA = samples > 1;
+            cameraComponent.targetTexture = runtime;
+        }
 
-            if (_originalFixedPreview == null)
+        // Releases one runtime-created preview texture.
+        private static void ReleasePreviewTarget(ref RenderTexture texture)
+        {
+            if (texture == null)
             {
                 return;
             }
 
-            Camera2.targetTexture = _originalFixedPreview;
-            if (_fixedPreview != null)
-            {
-                _fixedPreview.Release();
-                Destroy(_fixedPreview);
-            }
-
-            _fixedPreview = new RenderTexture(_originalFixedPreview.descriptor)
-            {
-                antiAliasing = samples,
-                name = "FixedPreviewMSAA"
-            };
-            if (RenderResolution != null)
-            {
-                _fixedPreview.width = RenderResolution.value == 0 ? 1920 : 3840;
-                _fixedPreview.height = RenderResolution.value == 0 ? 1080 : 2160;
-            }
-
-            _fixedPreview.Create();
-            Camera2.targetTexture = _fixedPreview;
+            texture.Release();
+            Destroy(texture);
+            texture = null;
         }
 
         // Restores global quality and releases the runtime-only fixed preview texture.
         private void OnDestroy()
         {
             QualitySettings.antiAliasing = _previousAntiAliasing;
-            if (_fixedPreview == null)
+            if (Camera1 != null)
             {
-                return;
+                Camera1.targetTexture = _originalMainPreview;
             }
 
             if (Camera2 != null)
             {
                 Camera2.targetTexture = _originalFixedPreview;
             }
-
-            _fixedPreview.Release();
-            Destroy(_fixedPreview);
+            ReleasePreviewTarget(ref _mainPreview);
+            ReleasePreviewTarget(ref _fixedPreview);
         }
 
         // Enables display synchronization or allows uncapped rendering.
@@ -474,6 +585,11 @@ namespace UnityRuntimeCameraRecorder.Example
                 RecordButtonLabel.text = busy ? "Stop recording" : "Record";
             }
 
+            if (ExportPngButton != null)
+            {
+                ExportPngButton.interactable = !busy && (_pngExporter == null || !_pngExporter.IsExporting);
+            }
+
             if (FullscreenButtonLabel != null)
             {
                 FullscreenButtonLabel.text = IsFullscreen() ? "Windowed" : "Fullscreen";
@@ -529,6 +645,7 @@ namespace UnityRuntimeCameraRecorder.Example
                 bool singleOutput = SingleVideoOutput != null && SingleVideoOutput.isOn;
                 Captures.BeginCapture(RecordCamera1.isOn, RecordCamera2.isOn, RecordScreen.isOn, singleOutput);
             }
+
         }
 
         // Finalizes media before leaving the application or Play mode.

@@ -82,6 +82,7 @@ namespace UnityRuntimeCameraRecorder.Example
 
             string[] names =
             {
+                "ExportPngButton",
                 "RecordButton",
                 "RecordScreen",
                 "RecordCamera2",
@@ -91,8 +92,9 @@ namespace UnityRuntimeCameraRecorder.Example
             {
                 16,
                 84,
-                128,
-                172
+                152,
+                196,
+                240
             };
             for (int i = 0; i < names.Length; i++)
             {
@@ -106,7 +108,7 @@ namespace UnityRuntimeCameraRecorder.Example
                 rect.anchorMin = rect.anchorMax = new Vector2(1, 0);
                 rect.pivot = new Vector2(1, 0);
                 rect.anchoredPosition = new Vector2(-16, heights[i]);
-                if (i == 0)
+                if (i <= 1)
                 {
                     rect.sizeDelta = new Vector2(248, rect.sizeDelta.y);
                     RectTransform label = rect.Find("Label") as RectTransform;
@@ -197,6 +199,11 @@ namespace UnityRuntimeCameraRecorder.Example
 
             controls.AntiAliasing = CreateAntiAliasingDropdown(root.transform, controls);
             controls.RenderResolution = CreateDropdown(root.transform, "RenderResolution", Vector2.zero, new Vector2(16, 308), new[] { "Render: Full HD", "Render: 4K" }, 0, controls.SetRenderResolution);
+            controls.MotionBlur = Checkbox(root.transform, "MotionBlur", "Motion blur", 444, true);
+            if (controls.MotionBlur.onValueChanged.GetPersistentEventCount() == 0)
+            {
+                UnityEventTools.AddPersistentListener(controls.MotionBlur.onValueChanged, controls.SetMotionBlur);
+            }
             bool newFullscreen = root.transform.Find("Fullscreen") == null;
             controls.Fullscreen = Checkbox(root.transform, "Fullscreen", "Fullscreen", 256, false);
             if (newFullscreen)
@@ -209,10 +216,10 @@ namespace UnityRuntimeCameraRecorder.Example
                 UnityEventTools.AddPersistentListener(controls.Fullscreen.onValueChanged, controls.SetFullscreen);
             }
 
-            controls.OutputFrameRate = CreateDropdown(root.transform, "OutputFrameRate", new Vector2(1, 0), new Vector2(-16, 224), new[] { "Output: 30 FPS", "Output: 60 FPS" }, 1, controls.SetOutputFrameRate);
-            controls.OutputResolution = CreateDropdown(root.transform, "OutputResolution", new Vector2(1, 0), new Vector2(-16, 276), new[] { "Output: Full HD", "Output: 4K" }, 1, controls.SetOutputResolution);
-            controls.RecordingQuality = CreateDropdown(root.transform, "RecordingQuality", new Vector2(1, 0), new Vector2(-16, 328), new[] { "Quality: Low", "Quality: Medium", "Quality: High" }, 2, controls.SetRecordingQuality);
-            controls.VideoCodec = CreateDropdown(root.transform, "VideoCodec", new Vector2(1, 0), new Vector2(-16, 380), new[] { "Video codec: H.264", "Video codec: HEVC" }, 0, controls.SetVideoCodec);
+            controls.OutputFrameRate = CreateDropdown(root.transform, "OutputFrameRate", new Vector2(1, 0), new Vector2(-16, 292), new[] { "Output: 30 FPS", "Output: 60 FPS" }, 1, controls.SetOutputFrameRate);
+            controls.OutputResolution = CreateDropdown(root.transform, "OutputResolution", new Vector2(1, 0), new Vector2(-16, 344), new[] { "Output: Full HD", "Output: 4K" }, 1, controls.SetOutputResolution);
+            controls.RecordingQuality = CreateDropdown(root.transform, "RecordingQuality", new Vector2(1, 0), new Vector2(-16, 396), new[] { "Quality: Low", "Quality: Medium", "Quality: High" }, 2, controls.SetRecordingQuality);
+            controls.VideoCodec = CreateDropdown(root.transform, "VideoCodec", new Vector2(1, 0), new Vector2(-16, 448), new[] { "Video codec: H.264", "Video codec: HEVC" }, 0, controls.SetVideoCodec);
             Text gpu = Label(root.transform, "GPU", "", Vector2.zero, new Vector2(620, 28));
             gpu.fontSize = 18;
             gpu.alignment = TextAnchor.MiddleCenter;
@@ -225,10 +232,11 @@ namespace UnityRuntimeCameraRecorder.Example
             status.rectTransform.anchorMin = status.rectTransform.anchorMax = new Vector2(.5f, 0);
             status.rectTransform.pivot = new Vector2(.5f, 0);
             status.rectTransform.anchoredPosition = new Vector2(0, 16);
-            controls.RecordCamera1 = Checkbox(root.transform, "RecordCamera1", "Record camera 1", 104, true);
-            controls.RecordCamera2 = Checkbox(root.transform, "RecordCamera2", "Record camera 2", 60, true);
-            controls.RecordScreen = Checkbox(root.transform, "RecordScreen", "Record screen", 16, true);
-            controls.RecordButton = Button(root.transform, "RecordButton", "Record", new Vector2(680, 16), false, controls.ToggleRecording);
+            controls.RecordCamera1 = Checkbox(root.transform, "RecordCamera1", "Record camera 1", 172, true);
+            controls.RecordCamera2 = Checkbox(root.transform, "RecordCamera2", "Record camera 2", 128, true);
+            controls.RecordScreen = Checkbox(root.transform, "RecordScreen", "Record screen", 84, true);
+            controls.RecordButton = Button(root.transform, "RecordButton", "Record", new Vector2(680, 84), false, controls.ToggleRecording);
+            controls.ExportPngButton = Button(root.transform, "ExportPngButton", "Export JPG", new Vector2(680, 16), false, controls.ExportSelectedPngSecond);
             controls.RecordButtonLabel = controls.RecordButton.GetComponentInChildren<Text>();
             Transform oldFullscreen = root.transform.Find("FullscreenButton");
             if (oldFullscreen != null)

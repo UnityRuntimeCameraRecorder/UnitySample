@@ -464,7 +464,7 @@ namespace UnityRuntimeCameraRecorder.Example
 
             if (_recordScreen)
             {
-                RecordingSettings settings = CreateRecordingSettings(directory, $"{baseName}_Screen", width, height, frameRate, 1);
+                RecordingSettings settings = CreateRecordingSettings(directory, $"{baseName}_Screen", width, height, frameRate, antiAliasingSamples);
                 _screenRecorder.StartRecording(CreateSingleSourceSequence(VideoSequenceSource.FromScreen()), listener, settings);
             }
         }
