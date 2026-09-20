@@ -165,9 +165,9 @@ jobs:
               gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$SNAPSHOT_TAG" -f sha="$GITHUB_SHA"
           fi
           if gh release view "$SNAPSHOT_TAG" >/dev/null 2>&1; then
-              gh release edit "$SNAPSHOT_TAG" --title "$SNAPSHOT_TAG" --prerelease --notes 'Latest automatic snapshot from the main branch.'
+              gh release edit "$SNAPSHOT_TAG" --title "$SNAPSHOT_TAG" --prerelease --notes 'Latest automatic snapshot from the main branch. FFmpeg and FFprobe are not bundled; download them from the [official FFmpeg download page](https://ffmpeg.org/download.html).'
           else
-              gh release create "$SNAPSHOT_TAG" --title "$SNAPSHOT_TAG" --prerelease --notes 'Latest automatic snapshot from the main branch.'
+              gh release create "$SNAPSHOT_TAG" --title "$SNAPSHOT_TAG" --prerelease --notes 'Latest automatic snapshot from the main branch. FFmpeg and FFprobe are not bundled; download them from the [official FFmpeg download page](https://ffmpeg.org/download.html).'
           fi
           asset=(Builds/Snapshots/UnitySample-1.0.0-snapshot-"$SNAPSHOT_PLATFORM".*)
           if [[ ${#asset[@]} -ne 1 || ! -f "${asset[0]}" ]]; then
