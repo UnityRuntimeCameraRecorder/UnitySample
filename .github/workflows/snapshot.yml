@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: snapshot-${{ github.workflow }}-${{ github.ref }}
@@ -97,6 +97,14 @@ jobs:
           if (-not (Test-Path -LiteralPath $player)) {
               throw "The built player is missing: $player"
           }
+          foreach ($dependency in 'UnityRuntimeCameraRecorder.dll', 'FFmpegMediaWriter.dll') {
+              if (-not (Get-ChildItem -LiteralPath $output -Filter $dependency -File -Recurse)) {
+                  throw "The player does not include dependency: $dependency"
+              }
+          }
+          if ($env:SNAPSHOT_PLATFORM -eq 'Windows' -and -not (Get-ChildItem -LiteralPath $output -Filter 'Direct3DVideoEncoder.dll' -File -Recurse)) {
+              throw 'The Windows player does not include dependency: Direct3DVideoEncoder.dll'
+          }
           Copy-Item -LiteralPath 'LICENSE', 'README.md' -Destination $output
           $hashes = [ordered]@{}
           $outputPath = (Resolve-Path -LiteralPath $output).Path
@@ -118,10 +126,10 @@ jobs:
           $snapshot = 'Builds/Snapshots'
           New-Item -ItemType Directory -Path $snapshot -Force | Out-Null
           if ($env:SNAPSHOT_PLATFORM -eq 'Windows') {
-              Compress-Archive -Path "$output/*" -DestinationPath "$snapshot/UnitySample-Windows.zip" -Force
+              Compress-Archive -Path "$output/*" -DestinationPath "$snapshot/UnitySample-1.0.0-snapshot-Windows.zip" -Force
           } else {
               # Tar preserves executable permissions and macOS bundle symbolic links.
-              tar -czf "$snapshot/UnitySample-$($env:SNAPSHOT_PLATFORM).tar.gz" -C $output .
+              tar -czf "$snapshot/UnitySample-1.0.0-snapshot-$($env:SNAPSHOT_PLATFORM).tar.gz" -C $output .
               if ($LASTEXITCODE -ne 0) {
                   throw 'Snapshot archive creation failed.'
               }
@@ -144,3 +152,26 @@ jobs:
           path: build.log
           if-no-files-found: ignore
           retention-days: 30
+
+      - name: Publish snapshot prerelease
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SNAPSHOT_TAG: 1.0.0-snapshot
+          SNAPSHOT_PLATFORM: ${{ matrix.platform }}
+        run: |
+          tag_reference="repos/$GITHUB_REPOSITORY/git/refs/tags/$SNAPSHOT_TAG"
+          if ! gh api --method PATCH "$tag_reference" -f sha="$GITHUB_SHA" -F force=true >/dev/null 2>&1; then
+              gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$SNAPSHOT_TAG" -f sha="$GITHUB_SHA"
+          fi
+          if gh release view "$SNAPSHOT_TAG" >/dev/null 2>&1; then
+              gh release edit "$SNAPSHOT_TAG" --title "$SNAPSHOT_TAG" --prerelease --notes 'Latest automatic snapshot from the main branch.'
+          else
+              gh release create "$SNAPSHOT_TAG" --title "$SNAPSHOT_TAG" --prerelease --notes 'Latest automatic snapshot from the main branch.'
+          fi
+          asset=(Builds/Snapshots/UnitySample-1.0.0-snapshot-"$SNAPSHOT_PLATFORM".*)
+          if [[ ${#asset[@]} -ne 1 || ! -f "${asset[0]}" ]]; then
+              printf 'Expected one snapshot archive for %s.\n' "$SNAPSHOT_PLATFORM" >&2
+              exit 1
+          fi
+          gh release upload "$SNAPSHOT_TAG" "${asset[0]}" --clobber
