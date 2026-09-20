@@ -61,23 +61,6 @@ jobs:
               exit 1
           fi
 
-      - name: Restore Unity editor cache
-        id: unity-cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: C:\Program Files\Unity\Hub\Editor\6000.0.61f1
-          key: unity-editor-windows-6000.0.61f1-74a0adb02c31-v2
-
-      - name: Remove incomplete cached editor
-        shell: pwsh
-        run: |
-          $editor = 'C:\Program Files\Unity\Hub\Editor\6000.0.61f1'
-          $required = Join-Path $editor 'Editor\Unity.dll'
-          if ((Test-Path -LiteralPath $editor) -and -not (Test-Path -LiteralPath $required)) {
-              Write-Warning "Cached Unity editor is incomplete; removing $editor."
-              Remove-Item -LiteralPath $editor -Recurse -Force
-          }
-
       - name: Set up Unity
         id: unity
         uses: buildalon/unity-setup@30fcbcb56c10ea5d64298e970d952b8d29bc268b # v2
@@ -91,13 +74,6 @@ jobs:
           if (-not (Test-Path -LiteralPath $required)) {
               throw "Unity setup is incomplete: $required is missing."
           }
-
-      - name: Save Unity editor cache
-        if: steps.unity-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: C:\Program Files\Unity\Hub\Editor\6000.0.61f1
-          key: unity-editor-windows-6000.0.61f1-74a0adb02c31-v2
 
       # The action returns its license in the post step, including on build failure.
       - name: Activate Unity Personal license
