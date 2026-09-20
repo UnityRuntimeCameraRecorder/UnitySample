@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     env:
-      RECORDER_REVISION: 9d6f2d1035db52327021f0b0fb6ab1a71b918078
+      RECORDER_REVISION: 679208f2446189c4842b560c39ff0bf8cf1f1eb7
     defaults:
       run:
         shell: bash

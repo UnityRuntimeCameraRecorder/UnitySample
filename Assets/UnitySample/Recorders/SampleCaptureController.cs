@@ -503,7 +503,7 @@ namespace UnityRuntimeCameraRecorder.Example
             _videoFiles.Add(Path.Combine(directory, $"{baseName}.mp4"));
             return new RecordingSettings
             {
-                FfmpegPath = Path.Combine(_ffmpegDirectory, "ffmpeg.exe"),
+                FfmpegPath = _ffmpegDirectory,
                 TemporaryContainerPath = Path.Combine(directory, $"{baseName}.mkv.tmp"),
                 GenerateStatistics = _generateStatistics,
                 OutputPath = Path.Combine(directory, $"{baseName}.mp4"),
