@@ -161,6 +161,11 @@ jobs:
           else
               gh release create "$SNAPSHOT_TAG" --title "$SNAPSHOT_TAG" --prerelease --notes 'Latest automatic snapshot from the main branch. FFmpeg and FFprobe are not bundled; download them from the [official FFmpeg download page](https://ffmpeg.org/download.html).'
           fi
+          while IFS= read -r previous_asset; do
+              if [[ -n "$previous_asset" ]]; then
+                  gh release delete-asset "$SNAPSHOT_TAG" "$previous_asset" --yes
+              fi
+          done < <(gh release view "$SNAPSHOT_TAG" --json assets --jq '.assets[].name')
           asset=(Builds/Snapshots/UnitySample-1.0.0-snapshot-"$SNAPSHOT_PLATFORM".*)
           if [[ ${#asset[@]} -ne 1 || ! -f "${asset[0]}" ]]; then
               printf 'Expected one snapshot archive for %s.\n' "$SNAPSHOT_PLATFORM" >&2
