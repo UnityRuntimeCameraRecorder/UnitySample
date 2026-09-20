@@ -53,7 +53,10 @@ namespace UnityRuntimeCameraRecorder.Example
             Text gpu = transform.Find("ApplicationCanvas/GPU")?.GetComponent<Text>();
             if (gpu != null)
             {
-                gpu.text = "GPU: " + SystemInfo.graphicsDeviceName;
+                string driver = NvidiaDriverInfo.GetVersion();
+                gpu.text = "GPU: " + SystemInfo.graphicsDeviceName
+                    + (string.IsNullOrEmpty(driver) ? "" : "  •  Driver: " + driver);
+                gpu.rectTransform.sizeDelta = new Vector2(1000, 28);
             }
 
             if (gpu != null)
