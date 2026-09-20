@@ -29,14 +29,26 @@ jobs:
             player: UnitySample.exe
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    env:
+      RECORDER_REVISION: 9d6f2d1035db52327021f0b0fb6ab1a71b918078
     defaults:
       run:
         shell: bash
+        working-directory: UnitySample
 
     steps:
       - name: Check out sample
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          path: UnitySample
+          persist-credentials: false
+
+      - name: Check out recorder dependency
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: UnityRuntimeCameraRecorder/UnityRuntimeCameraRecorder
+          ref: ${{ env.RECORDER_REVISION }}
+          path: UnityRuntimeCameraRecorder
           persist-credentials: false
 
       - name: Check Unity activation configuration
@@ -53,7 +65,7 @@ jobs:
         id: unity
         uses: buildalon/unity-setup@30fcbcb56c10ea5d64298e970d952b8d29bc268b # v2
         with:
-          version-file: ProjectSettings/ProjectVersion.txt
+          version-file: UnitySample/ProjectSettings/ProjectVersion.txt
           cache-installation: true
 
       # The action returns its license in the post step, including on build failure.
@@ -114,7 +126,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: UnitySample-snapshot-${{ matrix.platform }}-${{ github.sha }}-${{ github.run_attempt }}
-          path: Builds/Snapshots/
+          path: UnitySample/Builds/Snapshots/
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 30
@@ -124,7 +136,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: UnitySample-build-log-${{ matrix.platform }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: build.log
+          path: UnitySample/Builds/Logs/build.log
           if-no-files-found: ignore
           retention-days: 30
 
