@@ -27,12 +27,6 @@ jobs:
           - os: windows-2022
             platform: Windows
             player: UnitySample.exe
-          - os: ubuntu-22.04
-            platform: Linux
-            player: UnitySample
-          - os: macos-14
-            platform: macOS
-            player: UnitySample.app
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     defaults:
@@ -55,12 +49,6 @@ jobs:
               exit 1
           fi
 
-      - name: Install Linux build prerequisites
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb libgtk-3-0 libnss3 libasound2 libglu1-mesa
-
       - name: Set up Unity
         id: unity
         uses: buildalon/unity-setup@30fcbcb56c10ea5d64298e970d952b8d29bc268b # v2
@@ -79,12 +67,7 @@ jobs:
       - name: Build player without launching
         env:
           UNITY_EXECUTABLE: ${{ steps.unity.outputs.unity-editor-path }}
-        run: |
-          if [[ "$RUNNER_OS" == Linux ]]; then
-              xvfb-run -a bash ./build.sh
-          else
-              bash ./build.sh
-          fi
+        run: bash ./build.sh
 
       - name: Package snapshot
         shell: pwsh
@@ -125,15 +108,7 @@ jobs:
           } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $output 'build-info.json') -Encoding utf8
           $snapshot = 'Builds/Snapshots'
           New-Item -ItemType Directory -Path $snapshot -Force | Out-Null
-          if ($env:SNAPSHOT_PLATFORM -eq 'Windows') {
-              Compress-Archive -Path "$output/*" -DestinationPath "$snapshot/UnitySample-1.0.0-snapshot-Windows.zip" -Force
-          } else {
-              # Tar preserves executable permissions and macOS bundle symbolic links.
-              tar -czf "$snapshot/UnitySample-1.0.0-snapshot-$($env:SNAPSHOT_PLATFORM).tar.gz" -C $output .
-              if ($LASTEXITCODE -ne 0) {
-                  throw 'Snapshot archive creation failed.'
-              }
-          }
+          Compress-Archive -Path "$output/*" -DestinationPath "$snapshot/UnitySample-1.0.0-snapshot-Windows.zip" -Force
 
       - name: Upload snapshot
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
