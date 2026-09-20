@@ -182,10 +182,35 @@ jobs:
           if ! gh api --method PATCH "$tag_reference" -f sha="$GITHUB_SHA" -F force=true >/dev/null 2>&1; then
               gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$SNAPSHOT_TAG" -f sha="$GITHUB_SHA"
           fi
+          cat > release-notes.md <<'EOF'
+          ## Unity Runtime Camera Recorder — Windows snapshot
+
+          This is a ready-to-run Windows demo of **UnityRuntimeCameraRecorder**. It demonstrates real-time recording of Unity cameras and the rendered application using NVIDIA hardware encoding, with configurable resolution, frame rate, codec, quality, and MSAA.
+
+          ### Requirements
+
+          - Windows 10 or 11, 64-bit
+          - An NVIDIA GPU supporting NVENC hardware encoding
+          - NVIDIA display driver 610.00 or newer (required by NVENC API 13.1)
+          - FFmpeg and FFprobe
+
+          To check your GPU, run `nvidia-smi` in Command Prompt and find its model in the [NVIDIA Video Encode and Decode GPU Support Matrix](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new). Check that `H.264 (AVC) YUV 4:2:0` is `YES` for H.264 recording, or that `H.265 (HEVC) 4K YUV 4:2:0` is `YES` for HEVC recording up to 4K. `Max # of concurrent sessions` must also be at least the number of videos you want to record simultaneously.
+
+          ### How to run it
+
+          1. Download and extract `UnitySample-1.0.0-snapshot-Windows.zip`.
+          2. FFmpeg is not included in the archive. Download and extract [FFmpeg](https://ffmpeg.org/download.html).
+          3. Set `FFMPEG_PATH` to the FFmpeg `bin` directory containing both `ffmpeg.exe` and `ffprobe.exe`.
+          4. Launch `UnitySample.exe`.
+
+          Recordings are written to the `output` directory next to the application.
+
+          EOF
+          printf '\nBuilt from commit [`%s`](https://github.com/%s/commit/%s).\n' "$GITHUB_SHA" "$GITHUB_REPOSITORY" "$GITHUB_SHA" >> release-notes.md
           if gh release view "$SNAPSHOT_TAG" >/dev/null 2>&1; then
-              gh release edit "$SNAPSHOT_TAG" --title "$SNAPSHOT_TAG" --prerelease --notes 'Latest automatic snapshot from the main branch. FFmpeg and FFprobe are not bundled; download them from the [official FFmpeg download page](https://ffmpeg.org/download.html).'
+              gh release edit "$SNAPSHOT_TAG" --title "$SNAPSHOT_TAG" --prerelease --notes-file release-notes.md
           else
-              gh release create "$SNAPSHOT_TAG" --title "$SNAPSHOT_TAG" --prerelease --notes 'Latest automatic snapshot from the main branch. FFmpeg and FFprobe are not bundled; download them from the [official FFmpeg download page](https://ffmpeg.org/download.html).'
+              gh release create "$SNAPSHOT_TAG" --title "$SNAPSHOT_TAG" --prerelease --notes-file release-notes.md
           fi
           while IFS= read -r previous_asset; do
               if [[ -n "$previous_asset" ]]; then
