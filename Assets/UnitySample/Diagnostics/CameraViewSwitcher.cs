@@ -55,8 +55,9 @@ namespace UnityRuntimeCameraRecorder.Example
             {
                 string driver = NvidiaDriverInfo.GetVersion();
                 gpu.text = "GPU: " + SystemInfo.graphicsDeviceName
+                    + "  •  D3D: " + SystemInfo.graphicsDeviceVersion
                     + (string.IsNullOrEmpty(driver) ? "" : "  •  Driver: " + driver);
-                gpu.rectTransform.sizeDelta = new Vector2(1000, 28);
+                gpu.rectTransform.sizeDelta = new Vector2(1400, 28);
             }
 
             if (gpu != null)
