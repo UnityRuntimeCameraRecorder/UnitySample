@@ -48,7 +48,7 @@ namespace UnityRuntimeCameraRecorder.Example
         [SerializeField]
         private int _msaa = 4;
         private int _renderWidth = 2560, _renderHeight = 1440;
-        private RecordingQualityPreset _qualityPreset = RecordingQualityPreset.High;
+        private RecordingQualityPreset _qualityPreset = RecordingQualityPreset.Highest;
         public void SetQualityPreset(RecordingQualityPreset preset)
         {
             if (!IsCapturing)

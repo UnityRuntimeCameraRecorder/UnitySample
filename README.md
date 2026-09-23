@@ -74,7 +74,7 @@ Videos go into `output` beside the executable (project root in Play mode). With 
 
 The bundled libraries are [UnityRuntimeCameraRecorder](https://github.com/UnityRuntimeCameraRecorder/UnityRuntimeCameraRecorder), [Direct3DVideoEncoder](https://github.com/UnityRuntimeCameraRecorder/Direct3DVideoEncoder) and [FFmpegMediaWriter](https://github.com/UnityRuntimeCameraRecorder/FFmpegMediaWriter).
 
-The Quality menu selects Low, Medium or High (default); H.264 is the default codec. Profile details are documented in [UnityRuntimeCameraRecorder](https://github.com/UnityRuntimeCameraRecorder/UnityRuntimeCameraRecorder#quality-profiles), and native settings in [Direct3DVideoEncoder](https://github.com/UnityRuntimeCameraRecorder/Direct3DVideoEncoder#sdr-constant-qp-quality-entry-point). HDR is not supported today.
+The Quality menu selects Low, Medium, High or Highest (default); H.264 is the default codec. Profile details are documented in [UnityRuntimeCameraRecorder](https://github.com/UnityRuntimeCameraRecorder/UnityRuntimeCameraRecorder#quality-profiles), and native settings in [Direct3DVideoEncoder](https://github.com/UnityRuntimeCameraRecorder/Direct3DVideoEncoder#sdr-constant-qp-quality-entry-point). HDR is not supported today.
 
 ## Resources
 

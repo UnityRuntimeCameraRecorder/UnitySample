@@ -310,15 +310,15 @@ namespace UnityRuntimeCameraRecorder.Example
             // A cloned dropdown retains authored callbacks; quality must have its own callbacks.
             RecordingQuality.onValueChanged = new Dropdown.DropdownEvent();
             RecordingQuality.ClearOptions();
-            RecordingQuality.AddOptions(new System.Collections.Generic.List<string> { "Quality: Low", "Quality: Medium", "Quality: High" });
-            RecordingQuality.SetValueWithoutNotify(2);
+            RecordingQuality.AddOptions(new System.Collections.Generic.List<string> { "Quality: Low", "Quality: Medium", "Quality: High", "Quality: Highest" });
+            RecordingQuality.SetValueWithoutNotify(3);
             RecordingQuality.onValueChanged.AddListener(SetRecordingQuality);
-            SetRecordingQuality(2);
+            SetRecordingQuality(3);
         }
 
         public void SetRecordingQuality(int option)
         {
-            Captures?.SetQualityPreset((RecordingQualityPreset)Mathf.Clamp(option, 0, 2));
+            Captures?.SetQualityPreset((RecordingQualityPreset)Mathf.Clamp(option, 0, 3));
         }
 
         // Applies the selected output frame-rate ceiling for future recordings.

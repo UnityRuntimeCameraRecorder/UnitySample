@@ -18,7 +18,7 @@ namespace UnityRuntimeCameraRecorder.Example
             var canvas = controls.transform.Find("ApplicationCanvas");
             if (controls.RecordingQuality == null)
             {
-                controls.RecordingQuality = CreateDropdown(canvas, "RecordingQuality", new Vector2(1, 0), new Vector2(-16, 328), new[] { "Quality: Low", "Quality: Medium", "Quality: High" }, 2, controls.SetRecordingQuality);
+                controls.RecordingQuality = CreateDropdown(canvas, "RecordingQuality", new Vector2(1, 0), new Vector2(-16, 328), new[] { "Quality: Low", "Quality: Medium", "Quality: High", "Quality: Highest" }, 3, controls.SetRecordingQuality);
             }
             var manualPreset = canvas.Find("EncodingPreset");
             if (manualPreset != null)
@@ -223,7 +223,7 @@ namespace UnityRuntimeCameraRecorder.Example
 
             controls.OutputFrameRate = CreateDropdown(root.transform, "OutputFrameRate", new Vector2(1, 0), new Vector2(-16, 292), new[] { "Output: 30 FPS", "Output: 60 FPS" }, 1, controls.SetOutputFrameRate);
             controls.OutputResolution = CreateDropdown(root.transform, "OutputResolution", new Vector2(1, 0), new Vector2(-16, 344), new[] { "Output: Full HD", "Output: 4K" }, 1, controls.SetOutputResolution);
-            controls.RecordingQuality = CreateDropdown(root.transform, "RecordingQuality", new Vector2(1, 0), new Vector2(-16, 396), new[] { "Quality: Low", "Quality: Medium", "Quality: High" }, 2, controls.SetRecordingQuality);
+            controls.RecordingQuality = CreateDropdown(root.transform, "RecordingQuality", new Vector2(1, 0), new Vector2(-16, 396), new[] { "Quality: Low", "Quality: Medium", "Quality: High", "Quality: Highest" }, 3, controls.SetRecordingQuality);
             controls.VideoCodec = CreateDropdown(root.transform, "VideoCodec", new Vector2(1, 0), new Vector2(-16, 448), new[] { "Video codec: H.264", "Video codec: HEVC" }, 0, controls.SetVideoCodec);
             Text gpu = Label(root.transform, "GPU", "", Vector2.zero, new Vector2(620, 28));
             gpu.fontSize = 18;
