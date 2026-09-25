@@ -36,7 +36,7 @@ git clone --recurse-submodules https://github.com/cine-capture/UnitySample.git
 bash ./build.sh
 ```
 
-The script builds for the current OS into `Builds/Windows`, `Builds/Linux` or `Builds/macOS`; logs go to `Builds/Logs/build.log`. It uses the included plugin DLLs. Linux/macOS players support preview, not the current NVIDIA video backend; they have not been tested locally.
+The script builds `UnityRuntimeCameraRecorder` and its FFmpeg and native encoder dependencies, copies their DLLs into the Unity plugins directory, then builds the current OS player into `Builds/Windows`, `Builds/Linux` or `Builds/macOS`. Logs go to `Builds/Logs/build.log`. Linux/macOS players support preview, not the current NVIDIA video backend; they have not been tested locally.
 
 On Windows, clean, build and package the Release player with MSBuild:
 

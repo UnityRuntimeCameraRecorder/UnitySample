@@ -84,15 +84,27 @@ if [[ "$platform" == Windows ]]; then
 fi
 [[ -x "$unity_executable" ]] || fail "Unity is not executable: $unity_executable"
 
-# Check current plugin dependencies until versioned NuGet packages are published.
+# Build the recorder and synchronize its outputs into the Unity plugin directory.
 plugins_directory="$project_directory/Assets/UnitySample/Plugins"
-for library in UnityRuntimeCameraRecorder.dll FFmpegMediaWriter.dll; do
-    [[ -s "$plugins_directory/$library" ]] || fail "Missing plugin: $library. NuGet package preparation is not available yet."
-done
+unity_editor_directory="$(cd -- "$(dirname -- "$unity_executable")" && pwd -P)"
+unity_managed_path="$unity_editor_directory/Data/Managed/UnityEngine"
+[[ -s "$unity_managed_path/UnityEngine.CoreModule.dll" ]] || fail "Unity managed references are missing: $unity_managed_path"
+build_properties=(-p:UnityManagedPath="$unity_managed_path")
 if [[ "$platform" == Windows ]]; then
-    [[ -s "$plugins_directory/x86_64/Direct3DVideoEncoder.dll" ]] || fail 'Missing Windows plugin: Direct3DVideoEncoder.dll.'
+    vswhere='/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe'
+    [[ -x "$vswhere" ]] || fail 'Visual Studio Installer vswhere.exe was not found.'
+    native_msbuild="$("$vswhere" -latest -products '*' -requires Microsoft.Component.MSBuild Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -find 'MSBuild\**\Bin\MSBuild.exe' | tr -d '\r' | head -n 1)"
+    [[ -n "$native_msbuild" ]] || fail 'Visual Studio C++ build tools were not found.'
+    build_properties+=(-p:NativeMSBuildPath="$native_msbuild")
 else
     printf '%s\n' 'Note: the current video encoder is Windows/NVIDIA only; this build can preview the scene and use the image-sequence capture API.'
+fi
+dotnet build "$recorder_directory/UnityRuntimeCameraRecorder.csproj" -c Release "${build_properties[@]}" || fail 'Recorder dependency build failed.'
+recorder_output="$recorder_directory/bin/Release/netstandard2.1"
+mkdir -p -- "$plugins_directory/x86_64"
+cp -- "$recorder_output/UnityRuntimeCameraRecorder.dll" "$recorder_output/FFmpegMediaWriter.dll" "$plugins_directory/"
+if [[ "$platform" == Windows ]]; then
+    cp -- "$recorder_output/Direct3DVideoEncoder.dll" "$plugins_directory/x86_64/"
 fi
 
 player_path="$project_directory/$player_relative_path"

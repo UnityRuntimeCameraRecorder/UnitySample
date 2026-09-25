@@ -36,7 +36,10 @@ Desktop.ini
 /UnityPlayer.log
 /crash.dmp
 
-# Keep Assets (including plugin DLLs and .meta files), Packages and ProjectSettings tracked.
+# Keep Assets, Packages and ProjectSettings tracked.
+/Assets/UnitySample/Plugins/FFmpegMediaWriter.dll
+/Assets/UnitySample/Plugins/UnityRuntimeCameraRecorder.dll
+/Assets/UnitySample/Plugins/x86_64/Direct3DVideoEncoder.dll
 
 # Recorder-owned Unity assets synchronized by build.sh.
 /Assets/UnityRuntimeCameraRecorder/
