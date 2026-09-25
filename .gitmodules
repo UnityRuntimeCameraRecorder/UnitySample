@@ -1,0 +1,3 @@
+[submodule "UnityRuntimeCameraRecorder"]
+	path = UnityRuntimeCameraRecorder
+	url = https://github.com/cine-capture/UnityRuntimeCameraRecorder.git

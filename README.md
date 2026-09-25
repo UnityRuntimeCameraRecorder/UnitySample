@@ -26,6 +26,12 @@ Open `Assets/Scenes/RecordingSample.unity` in Unity **6000.0.61f1**, press Play,
 
 Install Unity **6000.0.61f1** with your platform's build support module. Put `Unity` / `Unity.exe` in `PATH` or set `UNITY_EXECUTABLE`. Save and close Unity, then run in Bash (Git Bash on Windows):
 
+Clone the repository with its recorder and nested dependencies:
+
+```bash
+git clone --recurse-submodules https://github.com/cine-capture/UnitySample.git
+```
+
 ```bash
 bash ./build.sh
 ```

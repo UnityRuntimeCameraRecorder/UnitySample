@@ -38,7 +38,7 @@ project_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 [[ -f "$project_directory/ProjectSettings/ProjectVersion.txt" ]] || fail 'Unity project settings were not found next to this script.'
 
 # Synchronize recorder-owned Unity assets without maintaining sample copies.
-recorder_directory="$(cd -- "$project_directory/../UnityRuntimeCameraRecorder" && pwd -P)"
+recorder_directory="$(cd -- "$project_directory/UnityRuntimeCameraRecorder" && pwd -P)"
 recorder_shader_source="$recorder_directory/Resources/UnityRuntimeCameraRecorderCrossFade.shader"
 recorder_shader_meta_source="$recorder_shader_source.meta"
 recorder_resources_directory="$project_directory/Assets/UnityRuntimeCameraRecorder/Resources"

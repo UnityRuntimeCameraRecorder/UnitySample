@@ -29,8 +29,6 @@ jobs:
             player: UnitySample.exe
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
-    env:
-      RECORDER_REVISION: 679208f2446189c4842b560c39ff0bf8cf1f1eb7
     defaults:
       run:
         shell: bash
@@ -41,14 +39,7 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           path: UnitySample
-          persist-credentials: false
-
-      - name: Check out recorder dependency
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          repository: cine-capture/UnityRuntimeCameraRecorder
-          ref: ${{ env.RECORDER_REVISION }}
-          path: UnityRuntimeCameraRecorder
+          submodules: recursive
           persist-credentials: false
 
       - name: Check Unity activation configuration
