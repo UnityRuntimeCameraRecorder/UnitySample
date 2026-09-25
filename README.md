@@ -72,9 +72,9 @@ Without `--record`, the app only previews. Keep it visible: batch/headless playe
 
 Videos go into `output` beside the executable (project root in Play mode). With `--statistics`, each video also produces a `*.stats.txt` file. The **Export JPG** button writes one second of JPEG frames into a subdirectory. Statistics include Unity render FPS; output FPS is a ceiling. Edit UI positions under `Diagnostics > ApplicationCanvas` outside Play mode.
 
-The bundled libraries are [UnityRuntimeCameraRecorder](https://github.com/CineCapture/UnityRuntimeCameraRecorder), [Direct3DVideoEncoder](https://github.com/CineCapture/Direct3DVideoEncoder) and [FFmpegMediaWriter](https://github.com/CineCapture/FFmpegMediaWriter).
+The bundled libraries are [UnityRuntimeCameraRecorder](https://github.com/cine-capture/UnityRuntimeCameraRecorder), [Direct3DVideoEncoder](https://github.com/cine-capture/Direct3DVideoEncoder) and [FFmpegMediaWriter](https://github.com/cine-capture/FFmpegMediaWriter).
 
-The Quality menu selects Low, Medium, High or Highest (default); H.264 is the default codec. Profile details are documented in [UnityRuntimeCameraRecorder](https://github.com/CineCapture/UnityRuntimeCameraRecorder#quality-profiles), and native settings in [Direct3DVideoEncoder](https://github.com/CineCapture/Direct3DVideoEncoder#sdr-constant-qp-quality-entry-point). HDR is not supported today.
+The Quality menu selects Low, Medium, High or Highest (default); H.264 is the default codec. Profile details are documented in [UnityRuntimeCameraRecorder](https://github.com/cine-capture/UnityRuntimeCameraRecorder#quality-profiles), and native settings in [Direct3DVideoEncoder](https://github.com/cine-capture/Direct3DVideoEncoder#sdr-constant-qp-quality-entry-point). HDR is not supported today.
 
 ## Resources
 
